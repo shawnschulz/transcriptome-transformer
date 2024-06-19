@@ -1,16 +1,17 @@
 #include <assert.h>
 #include <vector>
 #include <iostream>
+#include <array>
 using namespace std;
 
 class smatrix {
 
 public:
     void view() {
-        cout << "row x cols: " << shape[0] << " " << shape[1] << endl;
+        cout << "row x cols: " << dimensions[0] << " " << dimensions[1] << endl;
     }
-    array<int,2> shape(){
-        return shape;
+    array<int, 2> shape(){
+        return dimensions;
     }
     smatrix(initializer_list<vector<float>> list){
        int args_index;
@@ -26,8 +27,8 @@ public:
                 rowsview.push_back(arr[rows_index[)
             }
        }
-       shape[0] = colsview.size();
-       shape[1] = rowsview.size();
+       dimensions[0] = colsview.size();
+       dimensions[1] = rowsview.size();
     }
 
     void print() {
@@ -39,10 +40,10 @@ public:
         }
         cout << endl;
     }
-    vector<vector<float> getcols() {
+    vector<vector<float>> getcols() {
         return colsview
     }
-    vector<vector<float> getrows() {
+    vector<vector<float>> getrows() {
         return rowsview
     }
     void setcols(vector<vector<float>> input) {
@@ -52,7 +53,7 @@ public:
         rowsview = input
     }
 private:
-    array<int,2> shape;
+    array<int, 2> dimensions;
     vector<vector<float>> colsview;
     vector<vector<float>> rowsview;
 };
@@ -105,8 +106,8 @@ void GPUMatMul(smatrix mat1, smatrix mat2)
 {
 }
 int main() {
-    smatrix mat1 = smatrix(vector<float> vect{10,20,30}, vector<float> vect2{20,30,40}, vector<float> vect3{21,31,41})
-    smatrix mat2 = smatrix(vector<float> vect{10,20,30}, vector<float> vect2{20,30,40}, vector<float> vect3{21,31,41})
+    smatrix mat1 = smatrix(vector<float> vect{10,20,30}, vector<float> vect2{20,30,40}, vector<float> vect3{21,31,41});
+    smatrix mat2 = smatrix(vector<float> vect{10,20,30}, vector<float> vect2{20,30,40}, vector<float> vect3{21,31,41});
     smatrix output = NaiveMatMul(mat1, mat2);
     output.view();
     output.print();
