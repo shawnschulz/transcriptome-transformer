@@ -31,13 +31,13 @@ vector<vector<float>> NaiveMatMul(vector<vector<float>> mat1, vector<vector<floa
     int mat_2_col_index;
     int row_index;
     vector<float> column_multiple;
-    vector<float> row_multiple;
     float new_cell_value;
     vector<vector<float>> output_mat;
     vector<float> new_column;
 
     for (row_index = 0; row_index < mat1[0].size(); row_index++)
     {
+        vector<float> row_multiple;
         for (mat_1_col_index = 0; mat_1_col_index < mat1.size(); mat_1_col_index++) 
         {
            row_multiple.push_back(mat1[mat_1_col_index][row_index]);
