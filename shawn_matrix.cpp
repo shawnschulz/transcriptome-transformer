@@ -22,10 +22,10 @@ public:
        for (i = 0; i < columns[0].size(); i++){
            int j;
            for (j = 0; j < columns.size(); j++) {
-               rows[i].push_back(columns[j][i])
+               rows[i].push_back(columns[j][i]);
            }
        }
-       rowsview = rows
+       rowsview = rows;
        dimensions[0] = rowsview.size();
        dimensions[1] = colsview.size();
     }
@@ -40,10 +40,10 @@ public:
         cout << endl;
     }
     vector<vector<float>> getcols() {
-        return colsview
+        return colsview;
     }
     vector<vector<float>> getrows() {
-        return rowsview
+        return rowsview;
     }
     void setcols(vector<vector<float>> columns) {
        colsview = columns;
@@ -52,10 +52,10 @@ public:
        for (i = 0; i < columns[0].size(); i++){
            int j;
            for (j = 0; j < columns.size(); j++) {
-               rows[i].push_back(columns[j][i])
+               rows[i].push_back(columns[j][i]);
            }
        }
-       rowsview = rows
+       rowsview = rows;
        dimensions[0] = rowsview.size();
        dimensions[1] = colsview.size();
     }
@@ -66,21 +66,21 @@ public:
        for (j = 0; j < rows[0].size(); j++){
            int i;
            for (i = 0; i < rows.size(); i++) {
-               columns[j].push_back(rows[i][j])
+               columns[j].push_back(rows[i][j]);
            }
        }
-       colsview = columns
+       colsview = columns;
        dimensions[0] = rowsview.size();
        dimensions[1] = colsview.size();
     }
     void setcell(int i, int j, float new_value) {
-       colsview[j][i] = new_value
-       rowsview[i][j] = new_value
+       colsview[j][i] = new_value;
+       rowsview[i][j] = new_value;
        dimensions[0] = rowsview.size();
        dimensions[1] = colsview.size();
     }
     vector<vector<float>> transpose() {
-        return colsview 
+        return colsview;
     }
 private:
     array<int, 2> dimensions;
@@ -106,28 +106,23 @@ float CPUDotProduct(vector<float> vec1, vector<float> vec2)
 smatrix NaiveMatMul(smatrix mat1, smatrix mat2)
 {
     //rows of mat1 should be same size of columns of mat2
-    assert(mat1.shape()[0] == mat2.shape())[1];
-    int mat_1_col_index; 
-    int mat_2_col_index;
-    vector<float> row_multiple;
-    vector<float> column_multiple;
+    assert(mat1.shape()[0] == mat2.shape()[1]);
     float new_cell_value;
-    initializer_list<vector<float>> output_list
-    vector<vector<float>> all_rows = mat1.getrows()
-    vector<vector<float>> all_columns = mat2.getcols()
+    vector<vector<float>> all_rows = mat1.getrows();
+    vector<vector<float>> all_columns = mat2.getcols();
+    vector<vector<float>> output_matrix;
 
-    for ( mat_2_col_index= 0;  mat_2_col_index < mat2.size(); mat_2_col_index++)
+    int i; 
+    int j;
+    for (j = 0;  j < all_columns.size(); j++)
     {
-        for (mat_1_col_index = 0; mat_1_col_index < mat1[0].size(); mat_1_col_index++)
+        for (i = 0; i < all_rows.size(); i++)
         {
-            column_multiple = all_columns[mat_2_col_index];
-            row_multiple = all_rows[mat_1_col_index]
-            new_cell_value = CPUDotProduct(column_multiple, row_multiple);
-            new_column.push_back(new_cell_value);
+            new_cell_value = CPUDotProduct(all_columns[j], all_rows[i]);
         }
-        output_list.push_back(new_column);
+        output_matrix[i][j] = new_cell_value;
     }
-    return smatrix(output_list);
+    return smatrix(output_matrix);
 }
 void GPUDotProduct(vector<float> vec1, vector<float> vec2)
 {
