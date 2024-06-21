@@ -13,28 +13,27 @@ public:
     array<int, 2> shape(){
         return dimensions;
     }
-    smatrix(initializer_list<vector<float>> list){
-       int args_index;
-       for (args_index = 0; args_index < list.size(); args_index++) {
-            colsview.push_back(list[args_index])
-            int cols_index;
-            arr<vector<float> rows;
-            for (cols_index = 0; cols_index < list[args_index].size(); cols_index++) {
-                arr[cols_index].push_back(list[args_index][cols_index])
-            }
-            int rows_index;
-            for (rows_index = 0; rows_index < arr.size(); rows_index++){
-                rowsview.push_back(arr[rows_index[)
-            }
+    smatrix(vector<vector<float>> columns){
+        //smatrix must be supplied columns of equal length
+        //or undefined behavior will occur
+       colsview = columns;
+       vector<vector<float>> rows;
+       int i;
+       for (i = 0; i < columns[0].size(); i++){
+           int j;
+           for (j = 0; j < columns.size(); j++) {
+               rows[i].push_back(columns[j][i])
+           }
        }
-       dimensions[0] = colsview.size();
-       dimensions[1] = rowsview.size();
+       rowsview = rows
+       dimensions[0] = rowsview.size();
+       dimensions[1] = colsview.size();
     }
 
     void print() {
-        for (int i = 0; i < colsview.size(); i++) {
-            for (int j = 0; j < colsview[i].size(); j++) {
-                cout << colsview[i][j];
+        for (int i = 0; i < rowsview.size(); i++) {
+            for (int j = 0; j < rowsview[i].size(); j++) {
+                cout << rowsview[i][j];
             }
             cout << "\n";
         }
@@ -46,11 +45,42 @@ public:
     vector<vector<float>> getrows() {
         return rowsview
     }
-    void setcols(vector<vector<float>> input) {
-        colsview = input
+    void setcols(vector<vector<float>> columns) {
+       colsview = columns;
+       vector<vector<float>> rows;
+       int i;
+       for (i = 0; i < columns[0].size(); i++){
+           int j;
+           for (j = 0; j < columns.size(); j++) {
+               rows[i].push_back(columns[j][i])
+           }
+       }
+       rowsview = rows
+       dimensions[0] = rowsview.size();
+       dimensions[1] = colsview.size();
     }
-    void setrows(vector<vector<float>> input) {
-        rowsview = input
+    void setrows(vector<vector<float>> rows) {
+       rowsview = rows;
+       vector<vector<float>> columns;
+       int j;
+       for (j = 0; j < rows[0].size(); j++){
+           int i;
+           for (i = 0; i < rows.size(); i++) {
+               columns[j].push_back(rows[i][j])
+           }
+       }
+       colsview = columns
+       dimensions[0] = rowsview.size();
+       dimensions[1] = colsview.size();
+    }
+    void setcell(int i, int j, float new_value) {
+       colsview[j][i] = new_value
+       rowsview[i][j] = new_value
+       dimensions[0] = rowsview.size();
+       dimensions[1] = colsview.size();
+    }
+    vector<vector<float>> transpose() {
+        return colsview 
     }
 private:
     array<int, 2> dimensions;
@@ -106,8 +136,8 @@ void GPUMatMul(smatrix mat1, smatrix mat2)
 {
 }
 int main() {
-    smatrix mat1 = smatrix(vector<float> vect{10,20,30}, vector<float> vect2{20,30,40}, vector<float> vect3{21,31,41});
-    smatrix mat2 = smatrix(vector<float> vect{10,20,30}, vector<float> vect2{20,30,40}, vector<float> vect3{21,31,41});
+    smatrix mat1 = smatrix(vector<vector<float> vect{vector<float> vect{10,20,30}, vector<float> vect2{20,30,40}, vector<float> vect3{21,31,41}});
+    smatrix mat2 = smatrix(vector<vector<float> vect{vector<float> vect{10,20,30}, vector<float> vect2{20,30,40}, vector<float> vect3{21,31,41}});
     smatrix output = NaiveMatMul(mat1, mat2);
     output.view();
     output.print();
