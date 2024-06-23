@@ -86,9 +86,16 @@ public:
         return colsview;
     }
 private:
-    array<int, 2> dimensions;
-    vector<vector<float>> colsview;
-    vector<vector<float>> rowsview;
+    int data_size;
+    //We have to define the actual size of the data outside of here i think?
+    array * data;
+    //it's not hard to use other data types but lets start by assuming we are using floating point numbers
+    const char * datatype;
+    //the amount to jump to get to the next row of data. since arrays are always NxM, you jump the same amount
+    //to get to any row of data, so to get to the 20th row you just index to 20 * stride
+
+    int stride;
+
 };
 
 
