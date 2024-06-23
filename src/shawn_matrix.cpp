@@ -22,6 +22,9 @@ public:
        for (j = 0; j < columns.size(); j++){
            int i;
            for (i = 0; i < columns[0].size(); i++) {
+	       if (rows.size() == 0){
+		       vector<float> first_column{columns[j][i]}
+	       }
                rows[i].push_back(columns[j][i]);
            }
        }
@@ -118,6 +121,11 @@ smatrix NaiveMatMul(smatrix mat1, smatrix mat2)
     {
         for (i = 0; i < all_rows.size(); i++)
         {
+	    float sum = 0;
+	    int dp_index;
+	    for (dp_index = 0; dp_index < dp_index.size(); dp_index++) {
+		sum = sum + (
+	    }
             new_cell_value = CPUDotProduct(all_columns[j], all_rows[i]);
         }
         output_matrix[i][j] = new_cell_value;
