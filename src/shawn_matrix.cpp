@@ -131,9 +131,9 @@ void GPUMatMul(smatrix mat1, smatrix mat2)
 {
 }
 int main() {
-    
-    smatrix mat1 = smatrix(vector<vector<float>> vect{vector<float> vect{10,20,30}, vector<float> vect2{20,30,40}, vector<float> vect3{21,31,41}});
-    smatrix mat2 = smatrix(vector<vector<float>> vect{vector<float> vect{10,20,30}, vector<float> vect2{20,30,40}, vector<float> vect3{21,31,41}});
+    vector<vector<float>> input{{10,20,30}, {20,30,40}, {21,31,41}};
+    smatrix mat1 = smatrix(input);
+    smatrix mat2 = smatrix(input);
     smatrix output = NaiveMatMul(mat1, mat2);
     output.view();
     output.print();
