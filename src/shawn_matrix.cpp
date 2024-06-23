@@ -18,10 +18,10 @@ public:
         //or undefined behavior will occur
        colsview = columns;
        vector<vector<float>> rows;
-       int i;
-       for (i = 0; i < columns[0].size(); i++){
-           int j;
-           for (j = 0; j < columns.size(); j++) {
+       int j;
+       for (j = 0; j < columns.size(); j++){
+           int i;
+           for (i = 0; i < columns[0].size(); i++) {
                rows[i].push_back(columns[j][i]);
            }
        }
