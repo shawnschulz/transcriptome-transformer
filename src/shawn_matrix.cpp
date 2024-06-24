@@ -7,13 +7,8 @@ using namespace std;
 class smatrix {
 
 public:
-    void view() {
-        cout << "row x cols: " << dimensions[0] << " " << dimensions[1] << endl;
-    }
-    array<int, 2> shape(){
-        return dimensions;
-    }
-    smatrix(array * data, array<int,2> shape){
+    smatrix(array * data, array<int,2> dimensions)
+    {
 	    //basic constructor should be able to get everything from a contiguous array
 	    //and what the shape is supposed to be (do basic assertions that shape make sense)
 	    //prob wanna make 2 additional constructors, one that takes in a formatted string
@@ -21,36 +16,60 @@ public:
 	    //uncompressed file
 	    //
 	    //note that this default constructor takes a reference to the contiguous array,
-	    //not the data itself
-	    data = data
+	    //not the data itself. 
+	    //
+	    //Also, lets start with just 2d arrays. this will make it somewhat inconvenient to
+	    //refactor for higher dimensoinal arrays, but we can also compose a higher order
+	    //array as multiple 2d smatrices in the future, so it should be okay to start with
+	    //assuming 2d
+	    data = data;
+            dimensions = dimensions;
 	    if (!data) {
-		    throw invalid_argument("Did not receive pointer to data")
+		    throw invalid_argument("Did not receive pointer to data");
 	    }
-	    data_size = *data.size()
-	    if (data_size % shape[1] != 0) {
-		    throw invalid_argument("Number of columns does not divide data evenly")
+	    data_size = *data.size();
+	    if (data_size % dimensions[1] != 0) {
+		    throw invalid_argument("Number of columns does not divide data evenly");
 	    }
-	    stride = data_size / shape[1]
+	    stride = data_size / dimensions[0];
 	    // since c++ arrays are static should be able to infer data type from just one example
-	    datatype = typeid(*data[0])
+	    datatype = typeid(*data[0]);
     }
-
-    void print() {
-        for (int i = 0; i < rowsview.size(); i++) {
-            for (int j = 0; j < rowsview[i].size(); j++) {
-                cout << rowsview[i][j];
-            }
-            cout << "\n";
+    void shape() 
+    {
+        cout << "row x cols: " << dimensions[0] << " " << dimensions[1] << endl;
+    }
+    array<int, 2> get_dimensions() 
+    {
+	    return dimensions;
+    }
+    void print() 
+    {
+	// should ideally default to row major format
+	dataview = *data;
+	cout << "[";
+        for (int column_index = 0; column_index <= dataview.size(); column_index *= stride[0]) 
+	{
+	    cout << "["
+	    for (int row_index = 0; row_index < stride[0]; row_index += stride[1]) {
+		    cout << dataview[column_index + row_index];
+		    if (row_index != stride - 1) {
+			    cout << ", ";
+		    }
+	    }
+	    cout << "]";
+	    if (column_index != dataview.size(){
+	    	cout << ","
+	    }
+	    cout << "\n";
         }
+	cout << "]";
         cout << endl;
     }
-    vector<vector<float>> getcols() {
-        return colsview;
-    }
-    vector<vector<float>> getrows() {
-        return rowsview;
-    }
-    void setcols(vector<vector<float>> columns) {
+    
+    
+    void setcols(vector<vector<float>> columns) 
+    {
        colsview = columns;
        vector<vector<float>> rows;
        int i;
@@ -64,7 +83,8 @@ public:
        dimensions[0] = rowsview.size();
        dimensions[1] = colsview.size();
     }
-    void setrows(vector<vector<float>> rows) {
+    void setrows(vector<vector<float>> rows) 
+    {
        rowsview = rows;
        vector<vector<float>> columns;
        int j;
@@ -78,7 +98,8 @@ public:
        dimensions[0] = rowsview.size();
        dimensions[1] = colsview.size();
     }
-    void setcell(int i, int j, float new_value) {
+    void setcell(int i, int j, float new_value) 
+    {
        colsview[j][i] = new_value;
        rowsview[i][j] = new_value;
        dimensions[0] = rowsview.size();
@@ -95,9 +116,14 @@ private:
     int data_size;
     array * data;
     const char * datatype;
-    array<int, 2> shape;
+    array<int, 2> dimensions;
     //user just supplies dimensions, not stride. we set the stride based on user dimensions
-    int stride;
+    //also, i think less confusing to just do what numpy does for stride, even though i'm
+    //not sure we need to implement storing a byte value.
+    //
+    
+    //first element is number of array elements you have to go in
+    array<int, 2> stride;
     //it's not hard to use other data types but lets start by assuming we are using floating point numbers
     //the amount to jump to get to the next row of data. since arrays are always NxM, you jump the same amount
     //to get to any row of data, so to get to the 20th row you just index to 20 * stride
