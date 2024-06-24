@@ -13,24 +13,26 @@ public:
     array<int, 2> shape(){
         return dimensions;
     }
-    smatrix(vector<vector<float>> columns){
-        //smatrix must be supplied columns of equal length
-        //or undefined behavior will occur
-       colsview = columns;
-       vector<vector<float>> rows;
-       int j;
-       for (j = 0; j < columns.size(); j++){
-           int i;
-           for (i = 0; i < columns[0].size(); i++) {
-	       if (rows.size() == 0){
-		       vector<float> first_column{columns[j][i]}
-	       }
-               rows[i].push_back(columns[j][i]);
-           }
-       }
-       rowsview = rows;
-       dimensions[0] = rowsview.size();
-       dimensions[1] = colsview.size();
+    smatrix(array * data, array<int,2> shape){
+	    //basic constructor should be able to get everything from a contiguous array
+	    //and what the shape is supposed to be (do basic assertions that shape make sense)
+	    //prob wanna make 2 additional constructors, one that takes in a formatted string
+	    //and one that uses the formatted string construcor function but reads off of an
+	    //uncompressed file
+	    //
+	    //note that this default constructor takes a reference to the contiguous array,
+	    //not the data itself
+	    data = data
+	    if (!data) {
+		    throw invalid_argument("Did not receive pointer to data")
+	    }
+	    data_size = *data.size()
+	    if (data_size % shape[1] != 0) {
+		    throw invalid_argument("Number of columns does not divide data evenly")
+	    }
+	    stride = data_size / shape[1]
+	    // since c++ arrays are static should be able to infer data type from just one example
+	    datatype = typeid(*data[0])
     }
 
     void print() {
@@ -86,17 +88,22 @@ public:
         return colsview;
     }
 private:
+    //it makes more sense to go for a contiguous array vs vectors
+    //since that's what numpy fortran and matlab do
+    //its much less memory intensive and lets you do 
+    //things like transpose and other matrix operations much faster
     int data_size;
-    //We have to define the actual size of the data outside of here i think?
     array * data;
-    //it's not hard to use other data types but lets start by assuming we are using floating point numbers
     const char * datatype;
+    array<int, 2> shape;
+    //user just supplies dimensions, not stride. we set the stride based on user dimensions
+    int stride;
+    //it's not hard to use other data types but lets start by assuming we are using floating point numbers
     //the amount to jump to get to the next row of data. since arrays are always NxM, you jump the same amount
     //to get to any row of data, so to get to the 20th row you just index to 20 * stride
 
-    int stride;
-
 };
+
 
 
 //#include <stdio.h>
