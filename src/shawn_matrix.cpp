@@ -45,8 +45,9 @@ public:
     }
     void print() 
     {
-	// should ideally default to row major format
-	dataview = *data;
+	// print the data in row major format with a copy pasta-able format
+    // so you can put it straight into python or c++ if you want
+	array * dataview = *data;
 	cout << "[";
         for (int column_index = 0; column_index <= dataview.size(); column_index *= stride[0]) 
 	{
