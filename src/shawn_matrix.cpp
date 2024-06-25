@@ -48,7 +48,6 @@ public:
 	// print the data in row major format with a copy pasta-able format
     // so you can put it straight into python or c++ if you want
 	cout << "[";
-    [1, 3] [1,2,3,4,5,6,7,8,9]
         for (int column_index = 0; column_index <= *data.size(); column_index += stride[0]) 
 	{
 	    cout << "["
