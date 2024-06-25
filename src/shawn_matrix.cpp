@@ -23,11 +23,11 @@ public:
 	    //array as multiple 2d smatrices in the future, so it should be okay to start with
 	    //assuming 2d
 	    data = data;
-            dimensions = dimensions;
+        dimensions = dimensions;
 	    if (!data) {
 		    throw invalid_argument("Did not receive pointer to data");
 	    }
-	    data_size = *data.size();
+	    int data_size = *data.size();
 	    if (data_size % dimensions[1] != 0) {
 		    throw invalid_argument("Number of columns does not divide data evenly");
 	    }
@@ -47,19 +47,19 @@ public:
     {
 	// print the data in row major format with a copy pasta-able format
     // so you can put it straight into python or c++ if you want
-	array * dataview = *data;
 	cout << "[";
-        for (int column_index = 0; column_index <= dataview.size(); column_index *= stride[0]) 
+    [1, 3] [1,2,3,4,5,6,7,8,9]
+        for (int column_index = 0; column_index <= *data.size(); column_index += stride[0]) 
 	{
 	    cout << "["
-	    for (int row_index = 0; row_index < stride[0]; row_index += stride[1]) {
-		    cout << dataview[column_index + row_index];
-		    if (row_index != stride - 1) {
+	    for (int row_index = 0; row_index < *data.size(); row_index += stride[1]) {
+		    cout << *data[column_index + row_index];
+		    if (row_index != *data.size() - stride[1]) {
 			    cout << ", ";
 		    }
 	    }
 	    cout << "]";
-	    if (column_index != dataview.size(){
+	    if (column_index != *data.size(){
 	    	cout << ","
 	    }
 	    cout << "\n";
@@ -68,47 +68,20 @@ public:
         cout << endl;
     }
     
-    
-    void setcols(vector<vector<float>> columns) 
-    {
-       colsview = columns;
-       vector<vector<float>> rows;
-       int i;
-       for (i = 0; i < columns[0].size(); i++){
-           int j;
-           for (j = 0; j < columns.size(); j++) {
-               rows[i].push_back(columns[j][i]);
-           }
-       }
-       rowsview = rows;
-       dimensions[0] = rowsview.size();
-       dimensions[1] = colsview.size();
+    void transpose() {
+        //transpose mutates the matrix (compiler optimizations got me for da
+        //swap)
+        int temp = stride[0];
+        stride[0] = stride[1];
+        stride[1] = temp;
+        temp = dimensions[0];
+        dimensions[0] = dimensions[1];
+        dimensions[1] = temp;
     }
-    void setrows(vector<vector<float>> rows) 
-    {
-       rowsview = rows;
-       vector<vector<float>> columns;
-       int j;
-       for (j = 0; j < rows[0].size(); j++){
-           int i;
-           for (i = 0; i < rows.size(); i++) {
-               columns[j].push_back(rows[i][j]);
-           }
-       }
-       colsview = columns;
-       dimensions[0] = rowsview.size();
-       dimensions[1] = colsview.size();
+    smatrix copy (){
+        return smatrix(data, stride)
     }
-    void setcell(int i, int j, float new_value) 
-    {
-       colsview[j][i] = new_value;
-       rowsview[i][j] = new_value;
-       dimensions[0] = rowsview.size();
-       dimensions[1] = colsview.size();
-    }
-    vector<vector<float>> transpose() {
-        return colsview;
-    }
+
 private:
     //it makes more sense to go for a contiguous array vs vectors
     //since that's what numpy fortran and matlab do
@@ -180,10 +153,11 @@ void GPUMatMul(smatrix mat1, smatrix mat2)
 {
 }
 int main() {
-    vector<vector<float>> input{{10,20,30}, {20,30,40}, {21,31,41}};
-    smatrix mat1 = smatrix(input);
-    smatrix mat2 = smatrix(input);
+    array<float, 9> input = [1,2,3,4,5,6,7,8,9, 10, 11, 12]
+    array<int, 2> dims = [4,1]
+    smatrix mat1 = smatrix(&input, dims);
+    smatrix mat2 = smatrix(&input, dims);
+    mat1.print();
     smatrix output = NaiveMatMul(mat1, mat2);
-    output.view();
     output.print();
 }
