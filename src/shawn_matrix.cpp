@@ -4,30 +4,26 @@
 #include <array>
 using namespace std;
 
+template<typename T>
 class smatrix {
 
 public:
-    smatrix(array * data, array<int,2> dimensions)
+
+    smatrix(T data_pointer[], int data_size, const char * datatype,  array<int,2> dimensions)
     {
-	    //basic constructor should be able to get everything from a contiguous array
-	    //and what the shape is supposed to be (do basic assertions that shape make sense)
-	    //prob wanna make 2 additional constructors, one that takes in a formatted string
-	    //and one that uses the formatted string construcor function but reads off of an
-	    //uncompressed file
-	    //
-	    //note that this default constructor takes a reference to the contiguous array,
-	    //not the data itself. 
-	    //
-	    //Also, lets start with just 2d arrays. this will make it somewhat inconvenient to
+        //we are gonna do polymorphic arrays bc it makes it easy to lower
+        //precision of numbers stored in the array but it might be
+        //really annoying
+        //Also, lets start with just 2d arrays. this will make it somewhat inconvenient to
 	    //refactor for higher dimensoinal arrays, but we can also compose a higher order
 	    //array as multiple 2d smatrices in the future, so it should be okay to start with
 	    //assuming 2d
-	    data = data;
+	    data_pointer = data_pointer;
         dimensions = dimensions;
-	    if (!data) {
+	    if (!data_pointer) {
 		    throw invalid_argument("Did not receive pointer to data");
 	    }
-	    int data_size = *data.size();
+	    data_size = data_size;
 	    if (data_size % dimensions[1] != 0) {
 		    throw invalid_argument("Number of columns does not divide data evenly");
 	    }
@@ -47,6 +43,9 @@ public:
     {
 	// print the data in row major format with a copy pasta-able format
     // so you can put it straight into python or c++ if you want
+    //
+    // should make it so prints out a truncated view of the head if the
+    // data structure is too big
 	cout << "[";
         for (int column_index = 0; column_index <= *data.size(); column_index += stride[0]) 
 	{
@@ -78,7 +77,7 @@ public:
         dimensions[1] = temp;
     }
     smatrix copy (){
-        return smatrix(data, stride)
+        return smatrix(data_pointer, datatype, dimensions)
     }
 
 private:
@@ -86,17 +85,17 @@ private:
     //since that's what numpy fortran and matlab do
     //its much less memory intensive and lets you do 
     //things like transpose and other matrix operations much faster
+    //
+    //we do need the data size since we're taking a generic pointer
     int data_size;
-    array * data;
+    T* data_pointer;
     const char * datatype;
     array<int, 2> dimensions;
-    //user just supplies dimensions, not stride. we set the stride based on user dimensions
-    //also, i think less confusing to just do what numpy does for stride, even though i'm
-    //not sure we need to implement storing a byte value.
-    //
+    //stride is the amount to move to format columns and rows, can simply
+    //swap stride around to go from row major to column major
+    array<int, 2> stride;
     
     //first element is number of array elements you have to go in
-    array<int, 2> stride;
     //it's not hard to use other data types but lets start by assuming we are using floating point numbers
     //the amount to jump to get to the next row of data. since arrays are always NxM, you jump the same amount
     //to get to any row of data, so to get to the 20th row you just index to 20 * stride
