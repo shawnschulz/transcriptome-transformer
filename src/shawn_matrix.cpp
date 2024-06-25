@@ -52,7 +52,7 @@ public:
         for (int column_index = 0; column_index <= *data.size(); column_index += stride[0]) 
 	{
 	    cout << "["
-	    for (int row_index = 0; row_index < *data.size(); row_index += stride[1]) {
+	    for (int row_index = 0; row_index =< *data.size(); row_index += stride[1]) {
 		    cout << *data[column_index + row_index];
 		    if (row_index != *data.size() - stride[1]) {
 			    cout << ", ";
