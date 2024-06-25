@@ -2,11 +2,11 @@
 #include <vector>
 #include <iostream>
 #include <array>
+
 using namespace std;
 
 template<typename T>
 class smatrix {
-
 public:
 
     smatrix(T data_pointer[], int data_size, const char * datatype,  array<int,2> dimensions)
@@ -19,7 +19,7 @@ public:
 	    //array as multiple 2d smatrices in the future, so it should be okay to start with
 	    //assuming 2d
 	    data_pointer = data_pointer;
-        dimensions = dimensions;
+	    dimensions = dimensions;
 	    if (!data_pointer) {
 		    throw invalid_argument("Did not receive pointer to data");
 	    }
@@ -29,7 +29,7 @@ public:
 	    }
 	    stride = data_size / dimensions[0];
 	    // since c++ arrays are static should be able to infer data type from just one example
-	    datatype = typeid(*data[0]);
+	    datatype = typeid(*data_pointer[0]);
     }
     void shape() 
     {
@@ -42,10 +42,10 @@ public:
     void print() 
     {
 	// print the data in row major format with a copy pasta-able format
-    // so you can put it straight into python or c++ if you want
-    //
-    // should make it so prints out a truncated view of the head if the
-    // data structure is too big
+	// so you can put it straight into python or c++ if you want
+        //
+	// should make it so prints out a truncated view of the head if the
+	// data structure is too big
 	cout << "[";
         for (int column_index = 0; column_index <= *data.size(); column_index += stride[0]) 
 	{
