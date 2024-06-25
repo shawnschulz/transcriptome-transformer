@@ -25,7 +25,7 @@ public:
 	    }
 	    data_size = data_size;
 	    if (data_size % dimensions[1] != 0) {
-		    throw invalid_argument("Number of columns does not divide data evenly");
+		    throw invalid_argument("Given data size and dimensions don't match");
 	    }
 	    stride = data_size / dimensions[0];
 	    // since c++ arrays are static should be able to infer data type from just one example
@@ -58,7 +58,7 @@ public:
 	    }
 	    cout << "]";
 	    if (column_index != *data.size(){
-	    	cout << ","
+	    	cout << ",";
 	    }
 	    cout << "\n";
         }
@@ -77,7 +77,7 @@ public:
         dimensions[1] = temp;
     }
     smatrix copy (){
-        return smatrix(data_pointer, datatype, dimensions)
+        return smatrix(data_pointer, datatype, dimensions);
     }
 
 private:
@@ -103,9 +103,6 @@ private:
 };
 
 
-
-//#include <stdio.h>
-//#include "cuda_runtime.h"
 float CPUDotProduct(vector<float> vec1, vector<float> vec2) 
 {
     //should assert that the two vectors are the same size
@@ -151,8 +148,8 @@ void GPUMatMul(smatrix mat1, smatrix mat2)
 {
 }
 int main() {
-    array<float, 9> input = [1,2,3,4,5,6,7,8,9, 10, 11, 12]
-    array<int, 2> dims = [4,1]
+    array<float, 9> input = [1,2,3,4,5,6,7,8,9, 10, 11, 12];
+    array<int, 2> dims = [4,1];
     smatrix mat1 = smatrix(&input, dims);
     smatrix mat2 = smatrix(&input, dims);
     mat1.print();
