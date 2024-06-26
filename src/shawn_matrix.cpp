@@ -41,6 +41,12 @@ public:
     {
 	    return dimensions;
     }
+    T* get_data_pointer() {
+	return data_pointer;
+    }
+    int get_size() {
+	    return data_size;
+    }
     void print() 
     {
 	// print the data in row major format with a copy pasta-able format
@@ -51,7 +57,7 @@ public:
 	cout << "[";
         for (int column_index = 0; column_index <= data_size; column_index += stride[0]) 
 	{
-	    cout << "["
+	    cout << "[";
 	    for (int row_index = 0; row_index =< data_size; row_index += stride[1]) {
 		    cout << *data[column_index + row_index];
 		    if (row_index != data_size - stride[1]) {
@@ -77,6 +83,10 @@ public:
         temp = dimensions[0];
         dimensions[0] = dimensions[1];
         dimensions[1] = temp;
+    }
+    int absolute_index(int i, int j) {
+	int absolute_index = (j * stride[0]) + i;
+	return absolute_index;
     }
     smatrix copy (){
     	return smatrix(data_pointer, data_size, datatype,  dimensions);
@@ -117,31 +127,37 @@ float CPUDotProduct(vector<float> vec1, vector<float> vec2)
     }
     return sum;
 }
+
+template <typename T>
 smatrix NaiveMatMul(smatrix mat1, smatrix mat2)
 {
+    array<int, 2> dimensions_1 = mat1.get_dimensions()
+    array<int, 2> dimensions_2 = mat2.get_dimensions()
+    int output_size = mat1.get_size()
+    array<T, output_size> output_data;
     //rows of mat1 should be same size of columns of mat2
-    assert(mat1.shape()[0] == mat2.shape()[1]);
-    float new_cell_value;
-    vector<vector<float>> all_rows = mat1.getrows();
-    vector<vector<float>> all_columns = mat2.getcols();
-    vector<vector<float>> output_matrix;
-
+    if (dimensions_1[0] == dimensions_2[1]) 
+    {
+	    throw invalid_argument("Rows of mat1 do not match cols of mat2")
+    }
+    T new_cell_value;
     int i; 
     int j;
-    for (j = 0;  j < all_columns.size(); j++)
+    for (j = 0;  j < dimensions_1[0]; j++)
     {
-        for (i = 0; i < all_rows.size(); i++)
+        for (i = 0; i < dimensions_2[1]; i++)
         {
-	    float sum = 0;
-	    int dp_index;
-	    for (dp_index = 0; dp_index < dp_index.size(); dp_index++) {
-		sum = sum + (
+	    int shared_index;
+	    for (shared_index = 0; shared_index < dimensions_1[0]); shared_index++) {
+		mat1_abs_index = mat1.absolute_index(shared_index, j);
+		mat2_abs_index = mat2.absolute_index(i, shared_index);
+			
+		new_cell_value = *mat1.get_data_pointer()[mat1_abs_index] * *mat2.get_data_pointer()[mat2_abs_index]
+		output_data[i + j] = new_cell_value
 	    }
-            new_cell_value = CPUDotProduct(all_columns[j], all_rows[i]);
         }
-        output_matrix[i][j] = new_cell_value;
     }
-    return smatrix(output_matrix);
+    return smatrix(&output_data, data_size, T, dimensions);
 }
 void GPUDotProduct(vector<float> vec1, vector<float> vec2)
 {
