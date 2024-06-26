@@ -31,7 +31,11 @@ public:
 		    throw invalid_argument("Given data size and dimensions don't match");
 	    }
 	  
-	    stride = data_size / dimensions[0];
+	    stride[0] = data_size / dimensions[0];
+	    //gaaaah i guess we can just choose 1, but it really should be a variable byte
+	    //amount depending on what datatype we are using. maybe the c++ generics system
+	    //is good enough to resolve this but look here if you are getting wonky results
+	    stride[1] = 1;
     }
     void shape() 
     {
@@ -64,7 +68,8 @@ public:
 	{
 	    cout << "[";
 	    for (int row_index = 0; row_index <= data_size; row_index += stride[1]) {
-		    cout << *data_pointer[column_index + row_index];
+		    typeid(data_pointer[column_index + row_index]) output = data_pointer[column_index + row_index]; 
+		    cout << output;
 		    if (row_index != data_size - stride[1]) {
 			    cout << ", ";
 		    }
@@ -140,7 +145,7 @@ T CPUDotProduct(T mat1, T mat2)
         throw invalid_argument("Size of mat1 and mat2 data do not match");
     }
     }
-    int output_size;
+    const int output_size;
     array<int, 2> output_dimensions;
     if (mat1_size == 1) {
         output_size = mat2_size;
@@ -169,9 +174,9 @@ smatrix<T> CPUMatMul(smatrix<T> mat1, smatrix<T> mat2)
 {
     array<int, 2> dimensions_1 = mat1.get_dimensions();
     array<int, 2> dimensions_2 = mat2.get_dimensions();
-    int output_size = mat1.get_size();
+    const int output_size = mat1.get_size();
     array<T, output_size> output_data;
-    array<int, 2> output_dimensions = [dimensions_1[0], dimensions_2[1]];
+    array<int, 2> output_dimensions = {dimensions_1[0], dimensions_2[1]};
     //rows of mat1 should be same size of columns of mat2
     if (dimensions_1[0] != dimensions_2[1]) 
     {
@@ -185,9 +190,9 @@ smatrix<T> CPUMatMul(smatrix<T> mat1, smatrix<T> mat2)
         for (i = 0; i < dimensions_2[1]; i++)
         {
 	    int shared_index;
-	    for (shared_index = 0; shared_index < dimensions_1[0]); shared_index++) {
-            mat1_abs_index = mat1.absolute_index(shared_index, j);
-            mat2_abs_index = mat2.absolute_index(i, shared_index);
+	    for (shared_index = 0; shared_index < dimensions_1[0]; shared_index++) {
+            int mat1_abs_index = mat1.absolute_index(shared_index, j);
+            int mat2_abs_index = mat2.absolute_index(i, shared_index);
             new_cell_value = *mat1.get_data_pointer()[mat1_abs_index] * *mat2.get_data_pointer()[mat2_abs_index];
             output_data[i + j] = new_cell_value;
 	    }
@@ -196,15 +201,17 @@ smatrix<T> CPUMatMul(smatrix<T> mat1, smatrix<T> mat2)
     return smatrix(&output_data, output_size, mat1.get_datatype(), output_dimensions);
 }
 
-void GPUMatMul(smatrix mat1, smatrix mat2) 
+template <typename T>
+void GPUMatMul(smatrix<T> mat1, smatrix<T> mat2) 
 {
 }
+
 int main() {
-    array<float, 9> input = [1,2,3,4,5,6,7,8,9, 10, 11, 12];
-    array<int, 2> dims = [4,1];
-    smatrix mat1 = smatrix(&input, dims);
-    smatrix mat2 = smatrix(&input, dims);
+    array<float, 12> input = {1,2,3,4,5,6,7,8,9,10,11,12};
+    array<int, 2> dims = {4,1};
+    smatrix<array<float,12>> mat1 = smatrix(&input, 12, "float", dims);
+    smatrix<array<float,12>> mat2 = smatrix(&input, 12, "float", dims);
     mat1.print();
-    smatrix output = NaiveMatMul(mat1, mat2);
+    smatrix output = CPUMatMul(mat1, mat2);
     output.print();
 }
