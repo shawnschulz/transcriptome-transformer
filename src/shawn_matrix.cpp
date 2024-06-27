@@ -27,7 +27,7 @@ public:
 		    throw invalid_argument("Received empty data for array, unlikely this was intended");
 	    }
 	   
-	    if (data_size % dimensions[1] != 0) {
+	    if (data_size % dimensions[1] != 0 || dimensions[0] != data_size / dimensions[1]) {
 		    throw invalid_argument("Given data size and dimensions don't match");
 	    }
 	  
