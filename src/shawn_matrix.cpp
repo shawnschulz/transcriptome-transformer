@@ -8,7 +8,7 @@ using namespace std;
 template <typename T, size_t SIZE>
 class smatrix {
 public:
-    smatrix(array<T, SIZE>& data, int data_size, const char * datatype,  array<int,2> dimensions)
+    smatrix(array<T, SIZE> a, int b, const char * c,  array<int,2> d)
     {
 	    //we are gonna do polymorphic arrays bc it makes it easy to lower
 	    //precision of numbers stored in the array but it might be
@@ -18,10 +18,10 @@ public:
 	    //array as multiple 2d smatrices in the future, so it should be okay to start with
 	    //assuming 2d
 
-	    data = data;
+	    data = a;
 	    data_size = data.size();
-	    datatype = datatype;
-	    dimensions = dimensions;
+	    datatype = c;
+	    dimensions = d;
 	   //actually might just not be possible to check if array is null lol 
 	    if (data_size == 0) {
 		    throw invalid_argument("Received empty data for array, unlikely this was intended");
