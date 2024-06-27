@@ -5,10 +5,10 @@
 
 using namespace std;
 
-template <typename T>
+template <typename T, size_t SIZE>
 class smatrix {
 public:
-    smatrix(T data_pointer[], int data_size, const char * datatype,  array<int,2> dimensions)
+    smatrix(array<T, SIZE>& data, int data_size, const char * datatype,  array<int,2> dimensions)
     {
 	    //we are gonna do polymorphic arrays bc it makes it easy to lower
 	    //precision of numbers stored in the array but it might be
@@ -18,13 +18,13 @@ public:
 	    //array as multiple 2d smatrices in the future, so it should be okay to start with
 	    //assuming 2d
 
-	    data_pointer = data_pointer;
-	    data_size = data_size;
+	    data = data;
+	    data_size = data.size();
 	    datatype = datatype;
 	    dimensions = dimensions;
-	    
-	    if (!data_pointer) {
-		    throw invalid_argument("Did not receive pointer to data");
+	   //actually might just not be possible to check if array is null lol 
+	    if (data_size == 0) {
+		    throw invalid_argument("Received empty data for array, unlikely this was intended");
 	    }
 	   
 	    if (data_size % dimensions[1] != 0) {
@@ -45,8 +45,8 @@ public:
     {
 	    return dimensions;
     }
-    T* get_data_pointer() {
-	return data_pointer;
+    T get_data() {
+	return data;
     }
     int get_size() {
 	    return data_size;
@@ -68,8 +68,8 @@ public:
 	{
 	    cout << "[";
 	    for (int row_index = 0; row_index <= data_size; row_index += stride[1]) {
-		    typeid(data_pointer[column_index + row_index]) output = data_pointer[column_index + row_index]; 
-		    cout << output;
+		    auto output = data[column_index + row_index];
+		    cout << output; 
 		    if (row_index != data_size - stride[1]) {
 			    cout << ", ";
 		    }
@@ -104,7 +104,7 @@ public:
 	return absolute_index;
     }
     smatrix copy (){
-    	return smatrix(data_pointer, data_size, datatype,  dimensions);
+    	return smatrix(data, data_size, datatype,  dimensions);
     }
 
 private:
@@ -115,7 +115,7 @@ private:
     //
     //we do need the data size since we're taking a generic pointer
     int data_size;
-    T* data_pointer;
+    array<T, SIZE> data;
     const char * datatype;
     array<int, 2> dimensions;
     //stride is the amount to move to format columns and rows, can simply
@@ -129,89 +129,84 @@ private:
 
 };
 
-template <typename T>
-T CPUDotProduct(T mat1, T mat2) 
-{
-    //should assert that the two vectors are the same size
-    array<int, 2> dimensions_1 = mat1.get_dimensions();
-    array<int, 2> dimensions_2 = mat2.get_dimensions();
-    const int mat1_size = mat1.get_size();
-    const int mat2_size = mat2.get_size();
-    if (mat1_size != 1 and mat2_size != 1) {
-    if (dimensions_1 != dimensions_2) { 
-        throw invalid_argument("Dimensions of mat1 and mat2 do not match");
-    }
-    if (mat1_size != mat2_size) {
-        throw invalid_argument("Size of mat1 and mat2 data do not match");
-    }
-    }
-    const int output_size;
-    array<int, 2> output_dimensions;
-    if (mat1_size == 1) {
-        output_size = mat2_size;
-        output_dimensions = dimensions_2;
-    }
-    else if (mat2_size == 1) {
-        output_size = mat1_size;
-        output_dimensions = dimensions_1;
-    }
-    else {
-        //do compiler optimizations get this
-        output_size = mat1_size;
-        output_dimensions = dimensions_1;
-    }
-    array<T, mat1_size> output_data;
-    int i;
-    for (i = 0; i < output_size; i++)
-    {
-        output_data[i] = *mat1.get_data_pointer()[i] * *mat2.get_data_pointer()[i];
-    }
-    return smatrix(&output_data, output_size, mat1.get_datatype(), dimensions_1);
-}
+//template <typename T>
+//T CPUDotProduct(T mat1, T mat2) 
+//{
+//    //should assert that the two vectors are the same size
+//    array<int, 2> dimensions_1 = mat1.get_dimensions();
+//    array<int, 2> dimensions_2 = mat2.get_dimensions();
+//    const int mat1_size = mat1.get_size();
+//    const int mat2_size = mat2.get_size();
+//    if (mat1_size != 1 and mat2_size != 1) {
+//    if (dimensions_1 != dimensions_2) { 
+//        throw invalid_argument("Dimensions of mat1 and mat2 do not match");
+//    }
+//    if (mat1_size != mat2_size) {
+//        throw invalid_argument("Size of mat1 and mat2 data do not match");
+//    }
+//    }
+//    const int output_size;
+//    array<int, 2> output_dimensions;
+//    if (mat1_size == 1) {
+//        output_size = mat2_size;
+//        output_dimensions = dimensions_2;
+//    }
+//    else if (mat2_size == 1) {
+//        output_size = mat1_size;
+//        output_dimensions = dimensions_1;
+//    }
+//    else {
+//        //do compiler optimizations get this
+//        output_size = mat1_size;
+//        output_dimensions = dimensions_1;
+//    }
+//    array<T, mat1_size> output_data;
+//    int i;
+//    for (i = 0; i < output_size; i++)
+//    {
+//        output_data[i] = *mat1.get_data()[i] * *mat2.get_data()[i];
+//    }
+//    return smatrix(&output_data, output_size, mat1.get_datatype(), dimensions_1);
+//}
 
-template <typename T>
-smatrix<T> CPUMatMul(smatrix<T> mat1, smatrix<T> mat2)
-{
-    array<int, 2> dimensions_1 = mat1.get_dimensions();
-    array<int, 2> dimensions_2 = mat2.get_dimensions();
-    const int output_size = mat1.get_size();
-    array<T, output_size> output_data;
-    array<int, 2> output_dimensions = {dimensions_1[0], dimensions_2[1]};
-    //rows of mat1 should be same size of columns of mat2
-    if (dimensions_1[0] != dimensions_2[1]) 
-    {
-	    throw invalid_argument("Rows of mat1 do not match cols of mat2");
-    }
-    T new_cell_value;
-    int i; 
-    int j;
-    for (j = 0;  j < dimensions_1[0]; j++)
-    {
-        for (i = 0; i < dimensions_2[1]; i++)
-        {
-	    int shared_index;
-	    for (shared_index = 0; shared_index < dimensions_1[0]; shared_index++) {
-            int mat1_abs_index = mat1.absolute_index(shared_index, j);
-            int mat2_abs_index = mat2.absolute_index(i, shared_index);
-            new_cell_value = *mat1.get_data_pointer()[mat1_abs_index] * *mat2.get_data_pointer()[mat2_abs_index];
-            output_data[i + j] = new_cell_value;
-	    }
-        }
-    }
-    return smatrix(&output_data, output_size, mat1.get_datatype(), output_dimensions);
-}
-
-template <typename T>
-void GPUMatMul(smatrix<T> mat1, smatrix<T> mat2) 
-{
-}
+//template <typename T, size_t SIZE1, size_t SIZE2>
+//smatrix<T, SIZE> CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE2> mat2)
+//{
+//    array<int, 2> dimensions_1 = mat1.get_dimensions();
+//    array<int, 2> dimensions_2 = mat2.get_dimensions();
+//    const int output_size = mat1.get_size();
+//    array<T, output_size> output_data;
+//    array<int, 2> output_dimensions = {dimensions_1[0], dimensions_2[1]};
+//    //rows of mat1 should be same size of columns of mat2
+//    if (dimensions_1[0] != dimensions_2[1]) 
+//    {
+//	    throw invalid_argument("Rows of mat1 do not match cols of mat2");
+//    }
+//    T new_cell_value;
+//    int i; 
+//    int j;
+//    for (j = 0;  j < dimensions_1[0]; j++)
+//    {
+//        for (i = 0; i < dimensions_2[1]; i++)
+//        {
+//	    int shared_index;
+//	    for (shared_index = 0; shared_index < dimensions_1[0]; shared_index++) {
+//            int mat1_abs_index = mat1.absolute_index(shared_index, j);
+//            int mat2_abs_index = mat2.absolute_index(i, shared_index);
+//            new_cell_value = *mat1.get_data()[mat1_abs_index] * *mat2.get_data()[mat2_abs_index];
+//            output_data[i + j] = new_cell_value;
+//	    }
+//        }
+//    }
+//    return smatrix(output_data, output_size, mat1.get_datatype(), output_dimensions);
+//}
 
 int main() {
     array<float, 12> input = {1,2,3,4,5,6,7,8,9,10,11,12};
     array<int, 2> dims = {4,1};
-    smatrix<array<float,12>> mat1 = smatrix(&input, 12, "float", dims);
-    smatrix<array<float,12>> mat2 = smatrix(&input, 12, "float", dims);
+    smatrix mat1(input, 12, "float", dims);
+    smatrix mat2(input, 12, "float", dims);
     mat1.print();
-    smatrix output = CPUMatMul(mat1, mat2);
-    output.print();
+//    smatrix<array<float,12>> output = CPUMatMul(mat1, mat2);
+//    output.print();
 }
