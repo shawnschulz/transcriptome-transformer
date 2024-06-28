@@ -57,7 +57,7 @@ public:
     }
     void print(int precision = 2, int width = 5) 
     {
-	    //TODO: add padding so that numbers appear to be in same column
+	    //idk we can do defaults for the width that feel right
     int column_index;
         cout << fixed << setprecision(precision); 
 	cout << "[";
@@ -102,7 +102,7 @@ public:
 	stride[0] = data_size / dimensions[0];
     }
     int absolute_index(int i, int j) {
-	int absolute_index = (j * stride[0]) + i;
+	int absolute_index = i * stride[0] + j;
 	return absolute_index;
     }
     smatrix copy (){
@@ -209,7 +209,7 @@ int main() {
     smatrix mat1(input, 12, "float", dims);
     smatrix mat2(input, 12, "float", dims);
     mat1.print();
-    cout << mat1.absolute_index(1,2) cout << endl;
+    cout << mat1.absolute_index(1,2) << endl;
     mat1.transpose();
     mat1.print();
 //    smatrix<array<float,12>> output = CPUMatMul(mat1, mat2);
