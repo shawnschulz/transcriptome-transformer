@@ -31,7 +31,7 @@ public:
 		    throw invalid_argument("Given data size and dimensions don't match");
 	    }
 	  
-	    stride[0] = (data_size / dimensions[0]) + 1;
+	    stride[0] = (data_size / dimensions[0]);
 	    //gaaaah i guess we can just choose 1, but it really should be a variable byte
 	    //amount depending on what datatype we are using. maybe the c++ generics system
 	    //is good enough to resolve this but look here if you are getting wonky results
@@ -59,17 +59,17 @@ public:
 	    //TODO: add padding so that numbers appear to be in same column
     int column_index;
 	cout << "[";
-        for (int column_index = 0; column_index <= dimensions[1] - 1; column_index++) 
+        for (int row_index = 0; row_index <= dimensions[0] - 1; row_index++) 
 	{
-	    if (column_index != 0) {
+	    if (row_index!= 0) {
 		    cout << " ";
 	    }
 	    cout << "[";
-	    for (int row_index = 0; row_index <= dimensions[0] - 1; row_index += stride[1]) {
-		    int abs_index = column_index * stride[0] + row_index;
+	    for (int column_index = 0; column_index <= dimensions[1] - 1; column_index += stride[1]) {
+		    int abs_index = row_index * stride[0] + column_index;
 		    auto output = data[abs_index];
 		    cout  << output; 
-		    if (abs_index != data_size - 1 && row_index != dimensions[0] - 1) {
+		    if (abs_index != data_size - 1 && column_index != dimensions[1] - 1) {
 			    cout << ", ";
 		    }
             if (row_index > 1000) {
@@ -80,24 +80,23 @@ public:
             }
 	    }
 	    cout << "]";
-	    if (column_index * stride[0] < data_size - stride[0]) {
+	    if (row_index * stride[0] < data_size - stride[0]) {
 	    	cout << ",";
 	        cout << "\n";
 	    }
         }
 	cout << "]";
         cout << endl;
+	return void();
     }
     
     void transpose() {
         //transpose mutates the matrix (compiler optimizations got me for da
         //swap)
-        int temp = stride[0];
-        stride[0] = stride[1];
-        stride[1] = temp;
-        temp = dimensions[0];
+        int temp2 = dimensions[0];
         dimensions[0] = dimensions[1];
-        dimensions[1] = temp;
+        dimensions[1] = temp2;
+	stride[0] = data_size / dimensions[0];
     }
     int absolute_index(int i, int j) {
 	int absolute_index = (j * stride[0]) + i;
@@ -206,6 +205,9 @@ int main() {
     array<int, 2> dims = {4,3};
     smatrix mat1(input, 12, "float", dims);
     smatrix mat2(input, 12, "float", dims);
+    mat1.print();
+    cout << mat1.absolute_index(1,2);
+    mat1.transpose();
     mat1.print();
 //    smatrix<array<float,12>> output = CPUMatMul(mat1, mat2);
 //    output.print();
