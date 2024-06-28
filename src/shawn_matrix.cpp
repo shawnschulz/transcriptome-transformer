@@ -31,7 +31,7 @@ public:
 		    throw invalid_argument("Given data size and dimensions don't match");
 	    }
 	  
-	    stride[0] = data_size / dimensions[0];
+	    stride[0] = (data_size / dimensions[0]) + 1;
 	    //gaaaah i guess we can just choose 1, but it really should be a variable byte
 	    //amount depending on what datatype we are using. maybe the c++ generics system
 	    //is good enough to resolve this but look here if you are getting wonky results
@@ -56,34 +56,34 @@ public:
     }
     void print() 
     {
-	// print the data in row major format with a copy pasta-able format
-	// so you can put it straight into python or c++ if you want
-        //
-	// should make it so prints out a truncated view of the head if the
-	// data structure is too big
+	    //TODO: add padding so that numbers appear to be in same column
     int column_index;
-    int row_index;
 	cout << "[";
-        for (int column_index = 0; column_index <= data_size; column_index += stride[0]) 
+        for (int column_index = 0; column_index <= dimensions[1] - 1; column_index++) 
 	{
+	    if (column_index != 0) {
+		    cout << " ";
+	    }
 	    cout << "[";
-	    for (int row_index = 0; row_index <= data_size; row_index += stride[1]) {
-		    auto output = data[column_index + row_index];
-		    cout << output; 
-		    if (row_index != data_size - stride[1]) {
+	    for (int row_index = 0; row_index <= dimensions[0] - 1; row_index += stride[1]) {
+		    int abs_index = column_index * stride[0] + row_index;
+		    auto output = data[abs_index];
+		    cout  << output; 
+		    if (abs_index != data_size - 1 && row_index != dimensions[0] - 1) {
 			    cout << ", ";
 		    }
             if (row_index > 1000) {
+		cout << "...";
                 cout << "]]";
                 cout << endl;
                 return void();
             }
 	    }
 	    cout << "]";
-	    if (column_index != data_size) {
+	    if (column_index * stride[0] < data_size - stride[0]) {
 	    	cout << ",";
+	        cout << "\n";
 	    }
-	    cout << "\n";
         }
 	cout << "]";
         cout << endl;
@@ -203,7 +203,7 @@ private:
 
 int main() {
     array<float, 12> input = {1,2,3,4,5,6,7,8,9,10,11,12};
-    array<int, 2> dims = {4,1};
+    array<int, 2> dims = {4,3};
     smatrix mat1(input, 12, "float", dims);
     smatrix mat2(input, 12, "float", dims);
     mat1.print();
