@@ -57,7 +57,7 @@ public:
     }
     void print(int precision = 2, int width = 5) 
     {
-	    //idk we can do defaults for the width that feel right
+	    //idk we change defaults for the width that feel right
     int column_index;
         cout << fixed << setprecision(precision); 
 	cout << "[";
@@ -171,37 +171,39 @@ private:
 //    return smatrix(&output_data, output_size, mat1.get_datatype(), dimensions_1);
 //}
 
-//template <typename T, size_t SIZE1, size_t SIZE2>
-//smatrix<T, SIZE> CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE2> mat2)
-//{
-//    array<int, 2> dimensions_1 = mat1.get_dimensions();
-//    array<int, 2> dimensions_2 = mat2.get_dimensions();
-//    const int output_size = mat1.get_size();
-//    array<T, output_size> output_data;
-//    array<int, 2> output_dimensions = {dimensions_1[0], dimensions_2[1]};
-//    //rows of mat1 should be same size of columns of mat2
-//    if (dimensions_1[0] != dimensions_2[1]) 
-//    {
-//	    throw invalid_argument("Rows of mat1 do not match cols of mat2");
-//    }
-//    T new_cell_value;
-//    int i; 
-//    int j;
-//    for (j = 0;  j < dimensions_1[0]; j++)
-//    {
-//        for (i = 0; i < dimensions_2[1]; i++)
-//        {
-//	    int shared_index;
-//	    for (shared_index = 0; shared_index < dimensions_1[0]; shared_index++) {
-//            int mat1_abs_index = mat1.absolute_index(shared_index, j);
-//            int mat2_abs_index = mat2.absolute_index(i, shared_index);
-//            new_cell_value = *mat1.get_data()[mat1_abs_index] * *mat2.get_data()[mat2_abs_index];
-//            output_data[i + j] = new_cell_value;
-//	    }
-//        }
-//    }
-//    return smatrix(output_data, output_size, mat1.get_datatype(), output_dimensions);
-//}
+template <typename T, size_t SIZE1, size_t SIZE2>
+auto CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE2> mat2)
+{
+    array<int, 2> dimensions_1 = mat1.get_dimensions();
+    array<int, 2> dimensions_2 = mat2.get_dimensions();
+    const int output_size = mat1.get_size();
+    array<T, output_size> output_data;
+    //the output dimensions are the rows of mat1 x the columns of mat2
+    array<int, 2> output_dimensions = {dimensions_1[0], dimensions_2[1]};
+    //rows of mat1 should be same size of columns of mat2
+    if (dimensions_1[0] != dimensions_2[1]) 
+    {
+	    throw invalid_argument("Rows of mat1 do not match cols of mat2");
+    }
+    T new_cell_value;
+    int i; 
+    int j;
+    for (j = 0;  j < dimensions_1[0]; j++)
+    {
+        for (i = 0; i < dimensions_2[1]; i++)
+        {
+	    int shared_index;
+	    for (shared_index = 0; shared_index < dimensions_1[0]; shared_index++) {
+            int mat1_abs_index = mat1.absolute_index(shared_index, j);
+            int mat2_abs_index = mat2.absolute_index(i, shared_index);
+            new_cell_value = *mat1.get_data()[mat1_abs_index] * *mat2.get_data()[mat2_abs_index];
+            output_data[i + j] = new_cell_value;
+	    }
+        }
+    }
+    smatrix return_value(output_data, output_size, mat1.getdatatype(), output_dimensions);
+    return return_value;
+}
 
 int main() {
     array<float, 12> input = {1,2,3,4,5,6,7,8,9,10,11,12};
@@ -212,6 +214,8 @@ int main() {
     cout << mat1.absolute_index(1,2) << endl;
     mat1.transpose();
     mat1.print();
+    smatrix mat3 = CPUMatMul(mat1, mat2);
+    mat3.print();
 //    smatrix<array<float,12>> output = CPUMatMul(mat1, mat2);
 //    output.print();
 }
