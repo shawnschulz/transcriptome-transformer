@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <vector>
 #include <iostream>
+#include <iomanip>
 #include <array>
 
 using namespace std;
@@ -54,10 +55,11 @@ public:
     const char * get_datatype() {
         return datatype;
     }
-    void print() 
+    void print(int precision = 2, int width = 5) 
     {
 	    //TODO: add padding so that numbers appear to be in same column
     int column_index;
+        cout << fixed << setprecision(precision); 
 	cout << "[";
         for (int row_index = 0; row_index <= dimensions[0] - 1; row_index++) 
 	{
@@ -65,6 +67,7 @@ public:
 		    cout << " ";
 	    }
 	    cout << "[";
+	    cout << setw(width);
 	    for (int column_index = 0; column_index <= dimensions[1] - 1; column_index += stride[1]) {
 		    int abs_index = row_index * stride[0] + column_index;
 		    auto output = data[abs_index];
@@ -206,7 +209,7 @@ int main() {
     smatrix mat1(input, 12, "float", dims);
     smatrix mat2(input, 12, "float", dims);
     mat1.print();
-    cout << mat1.absolute_index(1,2);
+    cout << mat1.absolute_index(1,2) cout << endl;
     mat1.transpose();
     mat1.print();
 //    smatrix<array<float,12>> output = CPUMatMul(mat1, mat2);
