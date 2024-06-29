@@ -172,13 +172,14 @@ private:
 //}
 //
 
-template <typename T, size_t SIZE1, size_t, SIZE2, size_t, SIZE3>
-smatrix<T, SIZE3> CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE3> mat2)
+template <typename T, size_t SIZE1, size_t SIZE2>
+auto CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE2> mat2)
 {
     const array<int, 2> dimensions_1 = mat1.get_dimensions();
     const array<int, 2> dimensions_2 = mat2.get_dimensions();
-    const output_size = dimensions_1[0] * dimensions_2[1];
-    output_data = (array*) malloc(output_size);
+    const array<int, 2> output_dimensions = {dimensions_1[0], dimensions_2[1]}
+    const int output_size = dimensions_1[0] * dimensions_2[1];
+    T * output_data = new T[output_size]; 
     //the output dimensions are the rows of mat1 x the columns of mat2
     //rows of mat1 should be same size of columns of mat2
     if (dimensions_1[0] != dimensions_2[1]) 
@@ -201,6 +202,8 @@ smatrix<T, SIZE3> CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE3> mat2)
 	    }
         }
     }
+    //it doesn't feel intuitive that this will work, will the actual data output_data points to
+    //still be there once we leave this scope? be careful about this 
     smatrix return_value(output_data, output_size, mat1.get_datatype(), output_dimensions);
     return return_value;
 }
@@ -216,6 +219,7 @@ int main() {
     mat1.print();
     smatrix mat3 = CPUMatMul(mat1, mat2);
     mat3.print();
+    free(mat3);
 //    smatrix<array<float,12>> output = CPUMatMul(mat1, mat2);
 //    output.print();
 }
