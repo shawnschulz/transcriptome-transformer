@@ -9,7 +9,7 @@ using namespace std;
 template <typename T, size_t SIZE>
 class smatrix {
 public:
-    smatrix(array<T, SIZE> a, int b, const char * c,  array<int,2> d)
+    smatrix(T a[SIZE], int b, const char * c,  array<int,2> d)
     {
 	    //we are gonna do polymorphic arrays bc it makes it easy to lower
 	    //precision of numbers stored in the array but it might be
@@ -177,9 +177,9 @@ auto CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE2> mat2)
 {
     const array<int, 2> dimensions_1 = mat1.get_dimensions();
     const array<int, 2> dimensions_2 = mat2.get_dimensions();
-    const array<int, 2> output_dimensions;
-    output_dimensions.push_back(dimensions_1[0]);
-    output_dimensions.push_back(dimensions_2[1]);
+    array<int, 2> output_dimensions;
+    output_dimensions[0] = dimensions_1[0];
+    output_dimensions[1] = dimensions_2[1];
     const int output_size = dimensions_1[0] * dimensions_2[1];
     T * output_data = new T[output_size]; 
     //the output dimensions are the rows of mat1 x the columns of mat2
@@ -211,7 +211,7 @@ auto CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE2> mat2)
 }
 
 int main() {
-    array<float, 12> input = {1,2,3,4,5,6,7,8,9,10,11,12};
+     float input[12] = {1,2,3,4,5,6,7,8,9,10,11,12};
     array<int, 2> dims = {4,3};
     smatrix mat1(input, 12, "float", dims);
     smatrix mat2(input, 12, "float", dims);
