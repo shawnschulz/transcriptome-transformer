@@ -116,7 +116,7 @@ private:
     //things like transpose and other matrix operations much faster
     //
     //we do need the data size since we're taking a generic pointer
-    int data_size;
+    const int data_size;
     array<T, SIZE> data;
     const char * datatype;
     array<int, 2> dimensions;
@@ -170,16 +170,16 @@ private:
 //    }
 //    return smatrix(&output_data, output_size, mat1.get_datatype(), dimensions_1);
 //}
+//
 
-template <typename T, size_t SIZE1, size_t SIZE2>
-auto CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE2> mat2)
+template <typename T, size_t SIZE1, size_t, SIZE2, size_t, SIZE3>
+smatrix<T, SIZE3> CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE3> mat2)
 {
-    array<int, 2> dimensions_1 = mat1.get_dimensions();
-    array<int, 2> dimensions_2 = mat2.get_dimensions();
-    const int output_size = mat1.get_size();
-    array<T, output_size> output_data;
+    const array<int, 2> dimensions_1 = mat1.get_dimensions();
+    const array<int, 2> dimensions_2 = mat2.get_dimensions();
+    const output_size = dimensions_1[0] * dimensions_2[1];
+    output_data = (array*) malloc(output_size);
     //the output dimensions are the rows of mat1 x the columns of mat2
-    array<int, 2> output_dimensions = {dimensions_1[0], dimensions_2[1]};
     //rows of mat1 should be same size of columns of mat2
     if (dimensions_1[0] != dimensions_2[1]) 
     {
@@ -201,7 +201,7 @@ auto CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE2> mat2)
 	    }
         }
     }
-    smatrix return_value(output_data, output_size, mat1.getdatatype(), output_dimensions);
+    smatrix return_value(output_data, output_size, mat1.get_datatype(), output_dimensions);
     return return_value;
 }
 
