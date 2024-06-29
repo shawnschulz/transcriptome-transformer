@@ -177,7 +177,9 @@ auto CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE2> mat2)
 {
     const array<int, 2> dimensions_1 = mat1.get_dimensions();
     const array<int, 2> dimensions_2 = mat2.get_dimensions();
-    const array<int, 2> output_dimensions = {dimensions_1[0], dimensions_2[1]}
+    const array<int, 2> output_dimensions;
+    output_dimensions.push_back(dimensions_1[0]);
+    output_dimensions.push_back(dimensions_2[1]);
     const int output_size = dimensions_1[0] * dimensions_2[1];
     T * output_data = new T[output_size]; 
     //the output dimensions are the rows of mat1 x the columns of mat2
