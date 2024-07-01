@@ -9,7 +9,7 @@ using namespace std;
 template <typename T, size_t SIZE>
 class smatrix {
 public:
-    smatrix(T a[SIZE], int b, const char * c,  array<int,2> d)
+    smatrix(T *a, int b, const char * c,  array<int,2> d)
     {
 	    //we are gonna do polymorphic arrays bc it makes it easy to lower
 	    //precision of numbers stored in the array but it might be
@@ -20,7 +20,7 @@ public:
 	    //assuming 2d
 
 	    data = a;
-	    data_size = data.size();
+	    data_size = b;
 	    datatype = c;
 	    dimensions = d;
 	   //actually might just not be possible to check if array is null lol 
@@ -117,7 +117,7 @@ private:
     //
     //we do need the data size since we're taking a generic pointer
     const int data_size;
-    array<T, SIZE> data;
+    T* data[SIZE];
     const char * datatype;
     array<int, 2> dimensions;
     //stride is the amount to move to format columns and rows, can simply
@@ -180,8 +180,8 @@ auto CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE2> mat2)
     array<int, 2> output_dimensions;
     output_dimensions[0] = dimensions_1[0];
     output_dimensions[1] = dimensions_2[1];
-    const int output_size = dimensions_1[0] * dimensions_2[1];
-    T * output_data = new T[output_size]; 
+    const size_t output_size = dimensions_1[0] * dimensions_2[1];
+    T * output_data= new T[output_size]; 
     //the output dimensions are the rows of mat1 x the columns of mat2
     //rows of mat1 should be same size of columns of mat2
     if (dimensions_1[0] != dimensions_2[1]) 
@@ -211,7 +211,7 @@ auto CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE2> mat2)
 }
 
 int main() {
-     float input[12] = {1,2,3,4,5,6,7,8,9,10,11,12};
+    float input[12] = {1,2,3,4,5,6,7,8,9,10,11,12};
     array<int, 2> dims = {4,3};
     smatrix mat1(input, 12, "float", dims);
     smatrix mat2(input, 12, "float", dims);
