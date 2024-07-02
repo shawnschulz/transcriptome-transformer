@@ -6,13 +6,10 @@
 
 using namespace std;
 
-template <typename T, size_t SIZE> class smatrix {
+template <typename T> class smatrix {
 public:
   smatrix(T *a, int b, const char *c, array<int, 2> d) {
-    // we are gonna do polymorphic arrays bc it makes it easy to lower
-    // precision of numbers stored in the array but it might be
-    // really annoying
-    // Also, lets start with just 2d arrays. this will make it somewhat
+    // lets start with just 2d arrays. this will make it somewhat
     // inconvenient to refactor for higher dimensoinal arrays, but we can also
     // compose a higher order array as multiple 2d smatrices in the future, so
     // it should be okay to start with assuming 2d
@@ -33,10 +30,6 @@ public:
     }
 
     stride[0] = (data_size / dimensions[0]);
-    // gaaaah i guess we can just choose 1, but it really should be a variable
-    // byte amount depending on what datatype we are using. maybe the c++
-    // generics system is good enough to resolve this but look here if you are
-    // getting wonky results
     stride[1] = 1;
   }
   const T &operator[](size_type i) {
@@ -102,10 +95,7 @@ public:
     cout << endl;
     return void();
   }
-
   void transpose() {
-    // transpose mutates the matrix (compiler optimizations got me for da
-    // swap)
     int temp2 = dimensions[0];
     dimensions[0] = dimensions[1];
     dimensions[1] = temp2;
@@ -118,25 +108,14 @@ public:
   smatrix copy() { return smatrix(data, data_size, datatype, dimensions); }
 
 private:
-  // it makes more sense to go for a contiguous array vs vectors
-  // since that's what numpy fortran and matlab do
-  // its much less memory intensive and lets you do
-  // things like transpose and other matrix operations much faster
-  //
-  // we do need the data size since we're taking a generic pointer
   const int data_size;
-  T *data[SIZE];
+  //Data should not be in its own variable, instead a function should create the data
+  //T *data[SIZE];
   const char *datatype;
   array<int, 2> dimensions;
   // stride is the amount to move to format columns and rows, can simply
   // swap stride around to go from row major to column major
   array<int, 2> stride;
-
-  // first element is number of array elements you have to go in
-  // it's not hard to use other data types but lets start by assuming we are
-  // using floating point numbers the amount to jump to get to the next row of
-  // data. since arrays are always NxM, you jump the same amount to get to any
-  // row of data, so to get to the 20th row you just index to 20 * stride
 };
 
 // template <typename T>
@@ -181,8 +160,8 @@ private:
 // }
 //
 
-template <typename T, size_t SIZE1, size_t SIZE2>
-auto CPUMatMul(smatrix<T, SIZE1> mat1, smatrix<T, SIZE2> mat2) {
+template <typename T>
+smatrix<T> CPUMatMul(smatrix<T> mat1, smatrix<T> mat2) {
   const array<int, 2> dimensions_1 = mat1.get_dimensions();
   const array<int, 2> dimensions_2 = mat2.get_dimensions();
   array<int, 2> output_dimensions;
@@ -230,6 +209,4 @@ int main() {
   smatrix mat3 = CPUMatMul(mat1, mat2);
   mat3.print();
   free(mat3);
-  //    smatrix<array<float,12>> output = CPUMatMul(mat1, mat2);
-  //    output.print();
 }
