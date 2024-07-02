@@ -38,6 +38,28 @@ public:
 	    //is good enough to resolve this but look here if you are getting wonky results
 	    stride[1] = 1;
     }
+    const T& operator[](size_type i) {
+	    //overload for the [] operator, if many rows return a copy smatrix slice,
+	    //if 1 row return the value in data. this is so smatrix[i][j] just works
+	    //but also gives a way to do slices easily. prob just wanna leave it so
+	    //user must transpose their smatrix to get slice of a column, but 
+	    //we could add another function to get column slices
+	   if (dimensions[0] > 1) {
+		size_t row_size = dimensions[1];
+		new T output_data[row_size];
+		const int data_limit = *this.absolute_index(i,0) + dimensions[1];
+		copy(data, data_limit, output_data); 	
+		array<int,2> output_dimensions = {1, dimensions[1]};
+		return smatrix(output_data, row_size, datatype, output_dimensions);
+	   } 
+	   else {
+		//we may need to return an smatrix with just 1 element in it instead
+		//of int in this case depending on how finnicky it is to get it to 
+		//work with compiler, however, since this makes a variable amount of
+		return data[i];
+	   }
+	
+    }
     void shape() 
     {
         cout << "row x cols: " << dimensions[0] << " " << dimensions[1] << endl;
