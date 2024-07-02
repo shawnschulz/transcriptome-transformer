@@ -13,7 +13,12 @@ public:
     // inconvenient to refactor for higher dimensoinal arrays, but we can also
     // compose a higher order array as multiple 2d smatrices in the future, so
     // it should be okay to start with assuming 2d
+    typedef T* start_pointer;
+    typedef const T* const_start_pointer;
+    typedef size_t size_type;
+    typedef T value_type;
 
+   
     data = a;
     data_size = b;
     datatype = c;
@@ -51,6 +56,13 @@ public:
       // work with compiler, however, since this makes a variable amount of
       return data[i];
     }
+  }
+  smatrix<T>& smatrix<T>::operator=(const smatrix& right_hand_side) {
+    if (&right_hand_side != this) {
+      uncreate();
+      create(right_hand_side.begin(), right_hand_side.end())
+    }
+    return *this;
   }
   void shape() {
     cout << "row x cols: " << dimensions[0] << " " << dimensions[1] << endl;
