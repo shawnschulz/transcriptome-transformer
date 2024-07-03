@@ -13,10 +13,10 @@ public:
     // inconvenient to refactor for higher dimensoinal arrays, but we can also
     // compose a higher order array as multiple 2d smatrices in the future, so
     // it should be okay to start with assuming 2d
-    typedef T* start_pointer;
-    typedef const T* const_start_pointer;
+    typedef T* data_pointer;
+    typedef const T* const_data_pointer;
     typedef size_t size_type;
-    typedef T value_type;
+    typedef T datatype;
 
    
     data = a;
@@ -37,6 +37,8 @@ public:
     stride[0] = (data_size / dimensions[0]);
     stride[1] = 1;
   }
+  //this is the destructor for the class
+  ~smatrix() { delete_smatrix(); }
   const T &operator[](size_type i) {
     // overload for the [] operator, if many rows return a copy smatrix slice,
     // if 1 row return the value in data. this is so smatrix[i][j] just works
@@ -123,6 +125,8 @@ private:
   const int data_size;
   //Data should not be in its own variable, instead a function should create the data
   //T *data[SIZE];
+  data_pointer data;
+  data_pointer data_end_pointer;
   const char *datatype;
   array<int, 2> dimensions;
   // stride is the amount to move to format columns and rows, can simply
