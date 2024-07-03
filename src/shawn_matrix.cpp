@@ -37,8 +37,8 @@ public:
     stride[0] = (data_size / dimensions[0]);
     stride[1] = 1;
   }
-  //this is the destructor for the class
-  ~smatrix() { delete_smatrix(); }
+  smatrix(const Vec& v); //this is the copy constructor
+  ~smatrix() { delete_smatrix(); } //this is the destructor for the class
   const T &operator[](size_type i) {
     // overload for the [] operator, if many rows return a copy smatrix slice,
     // if 1 row return the value in data. this is so smatrix[i][j] just works
@@ -48,8 +48,8 @@ public:
     if (dimensions[0] > 1) {
       size_t row_size = dimensions[1];
       new T output_data[row_size];
-      const int data_limit = *this.absolute_index(i, 0) + dimensions[1];
-      copy(data, data_limit, output_data);
+      const int data_end_pointer = *this.absolute_index(i, 0) + dimensions[1];
+      copy(data, data_end_pointer, output_data);
       array<int, 2> output_dimensions = {1, dimensions[1]};
       return smatrix(output_data, row_size, datatype, output_dimensions);
     } else {
