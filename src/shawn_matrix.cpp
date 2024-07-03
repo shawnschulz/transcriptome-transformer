@@ -6,9 +6,10 @@
 
 using namespace std;
 
-template <typename T> class smatrix {
+template <typename T> class lokitrix {
 public:
-  smatrix(T *a, int b, const char *c, array<int, 2> d) {
+  //PUBLIC FUNCTIONS MUST NOT CHANGE data or data_end_pointer!!!!
+  lokitrix(T *a, int b, array<int, 2> d) {
     // lets start with just 2d arrays. this will make it somewhat
     // inconvenient to refactor for higher dimensoinal arrays, but we can also
     // compose a higher order array as multiple 2d smatrices in the future, so
@@ -37,13 +38,13 @@ public:
     stride[0] = (data_size / dimensions[0]);
     stride[1] = 1;
   }
-  smatrix(const Vec& v); //this is the copy constructor
-  ~smatrix() { delete_smatrix(); } //this is the destructor for the class
+  lokitrix(const Vec& v); //this is the copy constructor
+  ~lokitrix() { delete_lokitrix(); } //this is the destructor for the class
   const T &operator[](size_type i) {
-    // overload for the [] operator, if many rows return a copy smatrix slice,
-    // if 1 row return the value in data. this is so smatrix[i][j] just works
+    // overload for the [] operator, if many rows return a copy lokitrix slice,
+    // if 1 row return the value in data. this is so lokitrix[i][j] just works
     // but also gives a way to do slices easily. prob just wanna leave it so
-    // user must transpose their smatrix to get slice of a column, but
+    // user must transpose their lokitrix to get slice of a column, but
     // we could add another function to get column slices
     if (dimensions[0] > 1) {
       size_t row_size = dimensions[1];
@@ -51,15 +52,15 @@ public:
       const int data_end_pointer = *this.absolute_index(i, 0) + dimensions[1];
       copy(data, data_end_pointer, output_data);
       array<int, 2> output_dimensions = {1, dimensions[1]};
-      return smatrix(output_data, row_size, datatype, output_dimensions);
+      return lokitrix(output_data, row_size, datatype, output_dimensions);
     } else {
-      // we may need to return an smatrix with just 1 element in it instead
+      // we may need to return an lokitrix with just 1 element in it instead
       // of int in this case depending on how finnicky it is to get it to
       // work with compiler, however, since this makes a variable amount of
       return data[i];
     }
   }
-  smatrix<T>& smatrix<T>::operator=(const smatrix& right_hand_side) {
+  lokitrix<T>& lokitrix<T>::operator=(const lokitrix& right_hand_side) {
     if (&right_hand_side != this) {
       uncreate();
       create(right_hand_side.begin(), right_hand_side.end())
@@ -119,7 +120,10 @@ public:
     int absolute_index = i * stride[0] + j;
     return absolute_index;
   }
-  smatrix copy() { return smatrix(data, data_size, datatype, dimensions); }
+  data_pointer data_start() { return data; };
+  const_data_pointer const_data_start() const { return data; };
+  data_pointer data_end() { return data_end_pointer; };
+  const_data_pointer data_end() const { return data_end_pointer; };
 
 private:
   const int data_size;
@@ -127,7 +131,12 @@ private:
   //T *data[SIZE];
   data_pointer data;
   data_pointer data_end_pointer;
-  const char *datatype;
+  allocator<T> alloc;
+  void create();
+  void create(size_type, const T&);
+  void create(const_data_pointer, const_data_pointer);
+  void delete_lotrix();
+
   array<int, 2> dimensions;
   // stride is the amount to move to format columns and rows, can simply
   // swap stride around to go from row major to column major
@@ -171,13 +180,13 @@ private:
 //     {
 //         output_data[i] = *mat1.get_data()[i] * *mat2.get_data()[i];
 //     }
-//     return smatrix(&output_data, output_size, mat1.get_datatype(),
+//     return lokitrix(&output_data, output_size, mat1.get_datatype(),
 //     dimensions_1);
 // }
 //
 
 template <typename T>
-smatrix<T> CPUMatMul(smatrix<T> mat1, smatrix<T> mat2) {
+lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
   const array<int, 2> dimensions_1 = mat1.get_dimensions();
   const array<int, 2> dimensions_2 = mat2.get_dimensions();
   array<int, 2> output_dimensions;
@@ -208,7 +217,7 @@ smatrix<T> CPUMatMul(smatrix<T> mat1, smatrix<T> mat2) {
   // it doesn't feel intuitive that this will work, will the actual data
   // output_data points to still be there once we leave this scope? be careful
   // about this
-  smatrix return_value(output_data, output_size, mat1.get_datatype(),
+  lokitrix return_value(output_data, output_size, mat1.get_datatype(),
                        output_dimensions);
   return return_value;
 }
@@ -216,13 +225,13 @@ smatrix<T> CPUMatMul(smatrix<T> mat1, smatrix<T> mat2) {
 int main() {
   float input[12] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
   array<int, 2> dims = {4, 3};
-  smatrix mat1(input, 12, "float", dims);
-  smatrix mat2(input, 12, "float", dims);
+  lokitrix mat1(input, 12, "float", dims);
+  lokitrix mat2(input, 12, "float", dims);
   mat1.print();
   cout << mat1.absolute_index(1, 2) << endl;
   mat1.transpose();
   mat1.print();
-  smatrix mat3 = CPUMatMul(mat1, mat2);
+  lokitrix mat3 = CPUMatMul(mat1, mat2);
   mat3.print();
   free(mat3);
 }
