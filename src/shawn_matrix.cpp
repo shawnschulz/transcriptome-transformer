@@ -9,16 +9,22 @@ using namespace std;
 template <typename T> class lokitrix {
 public:
   //PUBLIC FUNCTIONS MUST NOT CHANGE data or data_end_pointer!!!!
+  //new idea: use this matrix for multi thread intensive operations
+  //where eeking out more performance matters alot more, and use
+  //a diff, simpler version with a vec<> as the underlying
+  //data storage for matrix operations that can be done quickly
+  //single threaded. make a shared interface that uses both appropriately
+  //(or just repeat yourself LOLOL)
+  typedef T* data_pointer;
+  typedef const T* const_data_pointer;
+  typedef size_t size_type;
+  typedef T datatype;
+
   lokitrix(T *a, int b, array<int, 2> d) {
     // lets start with just 2d arrays. this will make it somewhat
     // inconvenient to refactor for higher dimensoinal arrays, but we can also
     // compose a higher order array as multiple 2d smatrices in the future, so
     // it should be okay to start with assuming 2d
-    typedef T* data_pointer;
-    typedef const T* const_data_pointer;
-    typedef size_t size_type;
-    typedef T datatype;
-
    
     data = a;
     data_size = b;
@@ -38,7 +44,8 @@ public:
     stride[0] = (data_size / dimensions[0]);
     stride[1] = 1;
   }
-  lokitrix(const Vec& v); //this is the copy constructor
+  lokitrix() { create(); } //the empty constructor
+  lokitrix(const lokitrix& l) { create(l.data_start(), l.data_end()) }; //this is the copy constructor
   ~lokitrix() { delete_lokitrix(); } //this is the destructor for the class
   const T &operator[](size_type i) {
     // overload for the [] operator, if many rows return a copy lokitrix slice,
@@ -121,7 +128,7 @@ public:
     return absolute_index;
   }
   data_pointer data_start() { return data; };
-  const_data_pointer const_data_start() const { return data; };
+  const_data_pointer data_start() const { return data; };
   data_pointer data_end() { return data_end_pointer; };
   const_data_pointer data_end() const { return data_end_pointer; };
 
