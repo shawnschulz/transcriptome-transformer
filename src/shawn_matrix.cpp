@@ -53,23 +53,19 @@ public:
   lokitrix() { create(); } //the empty constructor
   lokitrix(const lokitrix& l) { create(l.data_start(), l.data_end()) }; //this is the copy constructor
   ~lokitrix() { delete_lokitrix(); } //this is the destructor for the class
-  const T &operator[](size_type i) {
+  const T& operator[](size_type i) { //read only cuz doesn't make sense otherwise
     // overload for the [] operator, if many rows return a copy lokitrix slice,
     // if 1 row return the value in data. this is so lokitrix[i][j] just works
     // but also gives a way to do slices easily. prob just wanna leave it so
     // user must transpose their lokitrix to get slice of a column, but
     // we could add another function to get column slices
     if (dimensions[0] > 1) {
-      size_t row_size = dimensions[1];
-      new T output_data[row_size];
-      const int data_end_pointer = *this.absolute_index(i, 0) + dimensions[1];
-      copy(data, data_end_pointer, output_data);
+      size_t output_size = dimensions[1];
+      data_pointer slice_end_pointer = *this.absolute_index(i, 0) + dimensions[1];
+      copy(i, data_end_pointer, output_data);
       array<int, 2> output_dimensions = {1, dimensions[1]};
-      return lokitrix(output_data, row_size, datatype, output_dimensions);
+      return lokitrix(output_data, output_size, output_dimensions);
     } else {
-      // we may need to return an lokitrix with just 1 element in it instead
-      // of int in this case depending on how finnicky it is to get it to
-      // work with compiler, however, since this makes a variable amount of
       return data[i];
     }
   }
@@ -161,10 +157,13 @@ void lokitrix<T>::create() {
   data = data_end_pointer = 0;
 }
 template <class T>
-void lokitrix<T>::create(size_type n, const T& value) {
+void lokitrix<T>::create(size_type n, const T& value, array<int, 2> input_dimensions) {
   data = alloc.allocate(n);
   data_end_pointer = data + n;
   uninitialized_fill(data, data_end_pointer, value);
+  dimensions = input_dimensions
+  stride[0] = (data_size / input_dimensions[0]);
+  stride[1] = 1;
 }
 template <class T>
 void lokitrix<T>::create(const_data_pointer i, const_data_pointer j)
@@ -244,7 +243,7 @@ void lokitrix<T>::add_rows(lokitrix<T> new_rows) {
 // }
 //
 
-template <typename T>
+template <class T>
 lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
   const array<int, 2> dimensions_1 = mat1.get_dimensions();
   const array<int, 2> dimensions_2 = mat2.get_dimensions();
