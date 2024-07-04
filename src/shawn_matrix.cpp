@@ -15,6 +15,12 @@ public:
   //data storage for matrix operations that can be done quickly
   //single threaded. make a shared interface that uses both appropriately
   //(or just repeat yourself LOLOL)
+  //also, memory does not need to be THAT flexible. can we just make a private
+  //function that adds dimensions[0] to the memory? that way we can do it so
+  //as matmul happens, it allocates only dimensions[0] size memory to
+  //calculate for matmul, overwrites the row that was just done,
+  //then for subsequent calculations jsut overwites the already calculated
+  //row. While this mutates, this should use very little memory.
   typedef T* data_pointer;
   typedef const T* const_data_pointer;
   typedef size_t size_type;
@@ -142,7 +148,7 @@ private:
   void create();
   void create(size_type, const T&);
   void create(const_data_pointer, const_data_pointer);
-  void delete_lotrix();
+  void delete_lokitrix();
 
   array<int, 2> dimensions;
   // stride is the amount to move to format columns and rows, can simply
@@ -150,6 +156,52 @@ private:
   array<int, 2> stride;
 };
 
+template <class T> 
+void lokitrix<T>::create() {
+  data = data_end_pointer = 0;
+}
+template <class T>
+void lokitrix<T>::create(size_type n, const T& value) {
+  data = alloc.allocate(n);
+  data_end_pointer = data + n;
+  uninitialized_fill(data, data_end_pointer, value);
+}
+template <class T>
+void lokitrix<T>::create(const_data_pointer i, const_data_pointer j)
+{
+  data = alloc.allocate(j - i);
+  data_end_pointer = uninitialized_copy(i, j, data);
+}
+template <class T>
+void lokitrix<T>::delete_lokitrix()
+{
+  if (data) {
+      data_pointer it = data_end_pointer;
+      while (it != data)
+          alloc.destroy(--it);
+      alloc.deallocate(data, data_end_pointer - data);
+  }
+  data = data_end_pointer = 0;
+}
+template <class T, size_t SIZE>
+void lokitrix<T>::add_rows(lokitrix<T> new_rows) {
+  //because we don't have a limit and used pointer, this method incurs a 
+  //memory overhead, since we allocate an entirely new matrix every time.
+  //thus it should be used sparingly (as I would expect)
+  //
+  //if this memory overhead is a lot, create a second matrix representation
+  //that uses std::vector and incurs the performance hit to syncing across
+  //threads in favor of making this process faster
+  if (new_row.get_stride[0] != dimensions[1]) {
+    throw invalid_argument("New row sizes do not match matrix dimensions")
+  }
+  size_type new_size = data_end_pointer + new_rows.data_end();
+  data_pointer new_data = alloc.allocate(new_size);
+  data_pointer new_end_pointer = uninitialized_copy(data, data_end_pointer, new_data);
+  delete_lokitrix();
+  data = new_data;
+  data_end_pointer = new_end_pointer;
+}
 // template <typename T>
 // T CPUDotProduct(T mat1, T mat2)
 //{
