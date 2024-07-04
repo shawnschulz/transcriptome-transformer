@@ -15,31 +15,20 @@ public:
   //data storage for matrix operations that can be done quickly
   //single threaded. make a shared interface that uses both appropriately
   //(or just repeat yourself LOLOL)
-  //also, memory does not need to be THAT flexible. can we just make a private
-  //function that adds dimensions[0] to the memory? that way we can do it so
-  //as matmul happens, it allocates only dimensions[0] size memory to
-  //calculate for matmul, overwrites the row that was just done,
-  //then for subsequent calculations jsut overwites the already calculated
-  //row. While this mutates, this should use very little memory.
   typedef T* data_pointer;
   typedef const T* const_data_pointer;
   typedef size_t size_type;
   typedef T datatype;
 
   lokitrix(T *a, int b, array<int, 2> d) {
-    // lets start with just 2d arrays. this will make it somewhat
-    // inconvenient to refactor for higher dimensoinal arrays, but we can also
-    // compose a higher order array as multiple 2d smatrices in the future, so
-    // it should be okay to start with assuming 2d
-   
     data = a;
     data_size = b;
     datatype = c;
     dimensions = d;
     // actually might just not be possible to check if array is null lol
-    if (data_size == 0) {
+    if (!data) {
       throw invalid_argument(
-          "Received empty data for array, unlikely this was intended");
+          "Received null data pointer for array");
     }
 
     if (data_size % dimensions[1] != 0 ||
@@ -53,12 +42,7 @@ public:
   lokitrix() { create(); } //the empty constructor
   lokitrix(const lokitrix& l) { create(l.data_start(), l.data_end()) }; //this is the copy constructor
   ~lokitrix() { delete_lokitrix(); } //this is the destructor for the class
-  const T& operator[](size_type i) { //read only cuz doesn't make sense otherwise
-    // overload for the [] operator, if many rows return a copy lokitrix slice,
-    // if 1 row return the value in data. this is so lokitrix[i][j] just works
-    // but also gives a way to do slices easily. prob just wanna leave it so
-    // user must transpose their lokitrix to get slice of a column, but
-    // we could add another function to get column slices
+  const T& operator[](size_type i) { 
     if (dimensions[0] > 1) {
       size_t output_size = dimensions[1];
       data_pointer slice_end_pointer = *this.absolute_index(i, 0) + dimensions[1];
