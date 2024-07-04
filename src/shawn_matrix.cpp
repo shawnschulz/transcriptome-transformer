@@ -30,12 +30,13 @@ public:
     stride[1] = 1;
   }
   lokitrix() { create(); } //the empty constructor
-  lokitrix(const lokitrix& l) { create(l.data_start(), l.data_end()) }; //this is the copy constructor
+  lokitrix(const lokitrix& l) { create(l.data_start(), l.data_end()); } //this is the copy constructor
   ~lokitrix() { delete_lokitrix(); } //this is the destructor for the class
   const T& operator[](size_type i) { 
     if (dimensions[0] > 1) {
       size_t output_size = dimensions[1];
-      data_pointer slice_end_pointer = *this.absolute_index(i, 0) + dimensions[1];
+      data_pointer slice = allocate.alloc(output_size);
+      data_pointer slice_end_pointer = &data[*this.absolute_index(i, 0) + dimensions[1]];
       copy(i, data_end_pointer, output_data);
       array<int, 2> output_dimensions = {1, dimensions[1]};
       return lokitrix(output_data, output_size, output_dimensions);
