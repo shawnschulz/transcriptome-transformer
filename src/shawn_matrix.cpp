@@ -35,13 +35,14 @@ public:
   const T& operator[](size_type i) { 
     if (dimensions[0] > 1) {
       size_t output_size = dimensions[1];
+      array<int, 2> output_dimensions = {1, dimensions[1]};
+      lokitrix slice(output_size, output_dimensions)
       data_pointer slice = allocate.alloc(output_size);
       data_pointer slice_end = slice + dimensions[1];
       int row_start_index = *this.absolute_index(i,0);
       for (int i = 0; i < dimensions[1]; i++) {
 	     slice[i] = *this[row_start_index + i];
       } 
-      array<int, 2> output_dimensions = {1, dimensions[1]};
       return lokitrix(slice, output_size, output_dimensions);
     } else {
       return data[i];
