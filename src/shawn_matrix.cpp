@@ -20,21 +20,11 @@ public:
   typedef size_t size_type;
   typedef T datatype;
 
-  lokitrix(T *a, int b, array<int, 2> d) {
+  lokitrix(T *a, int b, array<int, 2> c) {
     data = a;
     data_size = b;
-    datatype = c;
-    dimensions = d;
+    dimensions = c;
     // actually might just not be possible to check if array is null lol
-    if (!data) {
-      throw invalid_argument(
-          "Received null data pointer for array");
-    }
-
-    if (data_size % dimensions[1] != 0 ||
-        dimensions[0] != data_size / dimensions[1]) {
-      throw invalid_argument("Given data size and dimensions don't match");
-    }
 
     stride[0] = (data_size / dimensions[0]);
     stride[1] = 1;
@@ -53,7 +43,7 @@ public:
       return data[i];
     }
   }
-  lokitrix<T>& lokitrix<T>::operator=(const lokitrix& right_hand_side) {
+  lokitrix<T>& operator=(const lokitrix& right_hand_side) {
     if (&right_hand_side != this) {
       uncreate();
       create(right_hand_side.begin(), right_hand_side.end())
@@ -120,8 +110,6 @@ public:
 
 private:
   const int data_size;
-  //Data should not be in its own variable, instead a function should create the data
-  //T *data[SIZE];
   data_pointer data;
   data_pointer data_end_pointer;
   allocator<T> alloc;
@@ -148,6 +136,10 @@ void lokitrix<T>::create(size_type n, const T& value, array<int, 2> input_dimens
   dimensions = input_dimensions
   stride[0] = (data_size / input_dimensions[0]);
   stride[1] = 1;
+  if (data_size % dimensions[1] != 0 ||
+      dimensions[0] != data_size / dimensions[1]) {
+    throw invalid_argument("Given data size and dimensions don't match");
+  }
 }
 template <class T>
 void lokitrix<T>::create(const_data_pointer i, const_data_pointer j)
