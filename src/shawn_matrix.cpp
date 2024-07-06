@@ -36,9 +36,7 @@ public:
     if (dimensions[0] > 1) {
       size_t output_size = dimensions[1];
       array<int, 2> output_dimensions = {1, dimensions[1]};
-      lokitrix slice(output_size, output_dimensions)
-      data_pointer slice = allocate.alloc(output_size);
-      data_pointer slice_end = slice + dimensions[1];
+      lokitrix slice(output_size, output_dimensions);
       int row_start_index = *this.absolute_index(i,0);
       for (int i = 0; i < dimensions[1]; i++) {
 	     slice[i] = *this[row_start_index + i];
@@ -50,8 +48,8 @@ public:
   }
   lokitrix<T>& operator=(const lokitrix& right_hand_side) {
     if (&right_hand_side != this) {
-      uncreate();
-      create(right_hand_side.begin(), right_hand_side.end())
+      delete_lokitrix();
+      create(right_hand_side.begin(), right_hand_side.end());
     }
     return *this;
   }
@@ -61,7 +59,7 @@ public:
   array<int, 2> get_dimensions() { return dimensions; }
   T get_data() { return data; }
   int get_size() { return data_size; }
-  const char *get_datatype() { return datatype; }
+  //const char *get_datatype() { return datatype; }
   void print(int precision = 2, int width = 5) {
     // idk we change defaults for the width that feel right
     int column_index;
@@ -114,14 +112,15 @@ public:
   const_data_pointer data_end() const { return data_end_pointer; };
 
 private:
-  const int data_size;
+  size_type data_size;
   data_pointer data;
   data_pointer data_end_pointer;
   allocator<T> alloc;
   void create();
-  void create(size_type, const T&);
+  void create(size_type, const T&, array<int, 2>);
   void create(const_data_pointer, const_data_pointer);
   void delete_lokitrix();
+  void add_rows(lokitrix);
 
   array<int, 2> dimensions;
   // stride is the amount to move to format columns and rows, can simply
@@ -138,7 +137,7 @@ void lokitrix<T>::create(size_type n, const T& value, array<int, 2> input_dimens
   data = alloc.allocate(n);
   data_end_pointer = data + n;
   uninitialized_fill(data, data_end_pointer, value);
-  dimensions = input_dimensions
+  dimensions = input_dimensions;
   stride[0] = (data_size / input_dimensions[0]);
   stride[1] = 1;
   if (data_size % dimensions[1] != 0 ||
@@ -163,7 +162,7 @@ void lokitrix<T>::delete_lokitrix()
   }
   data = data_end_pointer = 0;
 }
-template <class T, size_t SIZE>
+template <class T>
 void lokitrix<T>::add_rows(lokitrix<T> new_rows) {
   //because we don't have a limit and used pointer, this method incurs a 
   //memory overhead, since we allocate an entirely new matrix every time.
@@ -172,8 +171,8 @@ void lokitrix<T>::add_rows(lokitrix<T> new_rows) {
   //if this memory overhead is a lot, create a second matrix representation
   //that uses std::vector and incurs the performance hit to syncing across
   //threads in favor of making this process faster
-  if (new_row.get_stride[0] != dimensions[1]) {
-    throw invalid_argument("New row sizes do not match matrix dimensions")
+  if (new_rows.get_stride[0] != dimensions[1]) {
+    throw invalid_argument("New row sizes do not match matrix dimensions");
   }
   size_type new_size = data_end_pointer + new_rows.data_end();
   data_pointer new_data = alloc.allocate(new_size);
@@ -232,7 +231,7 @@ lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
   output_dimensions[0] = dimensions_1[0];
   output_dimensions[1] = dimensions_2[1];
   const size_t output_size = dimensions_1[0] * dimensions_2[1];
-  T *output_data = new T[output_size];
+  lokitrix<T> output_data(output_size, 0, output_dimensions);
   // the output dimensions are the rows of mat1 x the columns of mat2
   // rows of mat1 should be same size of columns of mat2
   if (dimensions_1[0] != dimensions_2[1]) {
@@ -264,13 +263,12 @@ lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
 int main() {
   float input[12] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
   array<int, 2> dims = {4, 3};
-  lokitrix mat1(input, 12, "float", dims);
-  lokitrix mat2(input, 12, "float", dims);
+  lokitrix mat1(input, 12, dims);
+  lokitrix mat2(input, 12, dims);
   mat1.print();
   cout << mat1.absolute_index(1, 2) << endl;
   mat1.transpose();
   mat1.print();
   lokitrix mat3 = CPUMatMul(mat1, mat2);
   mat3.print();
-  free(mat3);
 }
