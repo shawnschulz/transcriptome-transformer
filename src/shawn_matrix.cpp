@@ -29,15 +29,20 @@ public:
     stride[0] = (data_size / dimensions[0]);
     stride[1] = 1;
   }
+  lokitrix(size_type n, const T& value, array<int, 2> input_dimensions){
+	  create(n, value, input_dimensions);
+  }
   lokitrix() { create(); } //the empty constructor
   lokitrix(const lokitrix& l) { create(l.data_start(), l.data_end()); } //this is the copy constructor
   ~lokitrix() { delete_lokitrix(); } //this is the destructor for the class
-  const T& operator[](size_type i) { 
+  //not using const T& here for operator overload violates the assumption of class invariance and may not 
+  //be worth it for convenience in writing the matmul function
+  T& operator[](size_type i) { 
     if (dimensions[0] > 1) {
       size_t output_size = dimensions[1];
       array<int, 2> output_dimensions = {1, dimensions[1]};
-      lokitrix slice(output_size, output_dimensions);
-      int row_start_index = *this.absolute_index(i,0);
+      lokitrix slice(output_size, 0, output_dimensions);
+      int row_start_index = this.absolute_index(i,0);
       for (int i = 0; i < dimensions[1]; i++) {
 	     slice[i] = *this[row_start_index + i];
       } 
@@ -57,7 +62,7 @@ public:
     cout << "row x cols: " << dimensions[0] << " " << dimensions[1] << endl;
   }
   array<int, 2> get_dimensions() { return dimensions; }
-  T get_data() { return data; }
+  data_pointer get_data() { return data; }
   int get_size() { return data_size; }
   //const char *get_datatype() { return datatype; }
   void print(int precision = 2, int width = 5) {
@@ -231,6 +236,7 @@ lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
   output_dimensions[0] = dimensions_1[0];
   output_dimensions[1] = dimensions_2[1];
   const size_t output_size = dimensions_1[0] * dimensions_2[1];
+  
   lokitrix<T> output_data(output_size, 0, output_dimensions);
   // the output dimensions are the rows of mat1 x the columns of mat2
   // rows of mat1 should be same size of columns of mat2
@@ -246,18 +252,15 @@ lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
       for (shared_index = 0; shared_index < dimensions_1[0]; shared_index++) {
         int mat1_abs_index = mat1.absolute_index(shared_index, j);
         int mat2_abs_index = mat2.absolute_index(i, shared_index);
-        new_cell_value =
-            *mat1.get_data()[mat1_abs_index] * *mat2.get_data()[mat2_abs_index];
-        output_data[i + j] = new_cell_value;
+        new_cell_value = mat1.get_data()[mat1_abs_index] * mat2.get_data()[mat2_abs_index];
+        output_data[i][j] = new_cell_value;
       }
     }
   }
   // it doesn't feel intuitive that this will work, will the actual data
   // output_data points to still be there once we leave this scope? be careful
   // about this
-  lokitrix return_value(output_data, output_size, mat1.get_datatype(),
-                       output_dimensions);
-  return return_value;
+  return output_data;
 }
 
 int main() {
