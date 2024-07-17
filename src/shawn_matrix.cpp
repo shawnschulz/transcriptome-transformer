@@ -44,7 +44,9 @@ public:
       lokitrix slice(output_size, 0, output_dimensions);
       int row_start_index = this.absolute_index(i,0);
       for (int i = 0; i < dimensions[1]; i++) {
-	     slice[i] = *this[row_start_index + i];
+          //how are you gonna use the index operator for this when you haven't
+          //defined the index operator yet LMAO
+	     slice[i] = this[row_start_index + i];
       } 
       return lokitrix(slice, output_size, output_dimensions);
     } else {
