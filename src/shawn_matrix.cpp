@@ -37,22 +37,24 @@ public:
   ~lokitrix() { delete_lokitrix(); } //this is the destructor for the class
   //not using const T& here for operator overload violates the assumption of class invariance and may not 
   //be worth it for convenience in writing the matmul function
-  T& operator[](size_type i) { 
-    if (dimensions[0] > 1) {
-      size_t output_size = dimensions[1];
-      array<int, 2> output_dimensions = {1, dimensions[1]};
-      lokitrix slice(output_size, 0, output_dimensions);
-      int row_start_index = this.absolute_index(i,0);
-      for (int i = 0; i < dimensions[1]; i++) {
-          //how are you gonna use the index operator for this when you haven't
-          //defined the index operator yet LMAO
-	     slice[i] = this[row_start_index + i];
-      } 
-      return lokitrix(slice, output_size, output_dimensions);
-    } else {
-      return data[i];
-    }
-  }
+  //Having a lot of trouble accessing data to use [] operator overload, lets come back to this
+  //after fixing other compiler errors
+  //T& operator[](size_type i) { 
+  //  if (dimensions[0] > 1) {
+  //    size_t output_size = dimensions[1];
+  //    array<int, 2> output_dimensions = {1, dimensions[1]};
+  //    lokitrix slice(output_size, 0, output_dimensions);
+  //    int row_start_index = this.absolute_index(i,0);
+  //    for (int i = 0; i < dimensions[1]; i++) {
+  //        //how are you gonna use the index operator for this when you haven't
+  //        //defined the index operator yet LMAO
+  //           slice[i] = this.data[row_start_index + i];
+  //    } 
+  //    return lokitrix(slice, output_size, output_dimensions);
+  //  } else {
+  //    return data[i];
+  //  }
+  //}
   lokitrix<T>& operator=(const lokitrix& right_hand_side) {
     if (&right_hand_side != this) {
       delete_lokitrix();
@@ -254,8 +256,9 @@ lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
       for (shared_index = 0; shared_index < dimensions_1[0]; shared_index++) {
         int mat1_abs_index = mat1.absolute_index(shared_index, j);
         int mat2_abs_index = mat2.absolute_index(i, shared_index);
-        new_cell_value = mat1.get_data()[mat1_abs_index] * mat2.get_data()[mat2_abs_index];
-        output_data[i][j] = new_cell_value;
+	int mat3_abs_index = output_data.absolute_index(mat1_abs_index, mat2_abs_index);
+        new_cell_value = mat1.data_start()[mat1_abs_index] * mat2.data_start()[mat2_abs_index];
+        output_data.data_start()[mat3_abs_index] = new_cell_value;
       }
     }
   }
