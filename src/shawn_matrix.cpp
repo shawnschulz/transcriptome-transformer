@@ -21,13 +21,7 @@ public:
   typedef T datatype;
 
   lokitrix(T *a, int b, array<int, 2> c) {
-    data = a;
-    data_size = b;
-    dimensions = c;
-    // actually might just not be possible to check if array is null lol
-
-    stride[0] = (data_size / dimensions[0]);
-    stride[1] = 1;
+    create(a, b, c);
   }
   lokitrix(size_type n, const T& value, array<int, 2> input_dimensions){
 	  create(n, value, input_dimensions);
@@ -48,11 +42,11 @@ public:
   //    for (int i = 0; i < dimensions[1]; i++) {
   //        //how are you gonna use the index operator for this when you haven't
   //        //defined the index operator yet LMAO
-  //           slice[i] = this.data[row_start_index + i];
+  //           slice[i] = this.data_start()[row_start_index + i];
   //    } 
   //    return lokitrix(slice, output_size, output_dimensions);
   //  } else {
-  //    return data[i];
+  //    return this.data_start()[i];
   //  }
   //}
   lokitrix<T>& operator=(const lokitrix& right_hand_side) {
@@ -142,10 +136,24 @@ void lokitrix<T>::create() {
   data = data_end_pointer = 0;
 }
 template <class T>
+//initializes data of all same value
 void lokitrix<T>::create(size_type n, const T& value, array<int, 2> input_dimensions) {
   data = alloc.allocate(n);
   data_end_pointer = data + n;
   uninitialized_fill(data, data_end_pointer, value);
+  dimensions = input_dimensions;
+  stride[0] = (data_size / input_dimensions[0]);
+  stride[1] = 1;
+  if (data_size % dimensions[1] != 0 ||
+      dimensions[0] != data_size / dimensions[1]) {
+    throw invalid_argument("Given data size and dimensions don't match");
+  }
+}
+//initializes data from an input array with no shape
+void lokitrix<T>::create(data_pointer input, size_type n, array<int, 2> input_dimensions) {
+  data = alloc.allocate(n);
+  data_end_pointer = data + n;
+  copy_n(input.begin(), n, data);
   dimensions = input_dimensions;
   stride[0] = (data_size / input_dimensions[0]);
   stride[1] = 1;
@@ -270,9 +278,10 @@ lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
 
 int main() {
   float input[12] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  float input2[12] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
   array<int, 2> dims = {4, 3};
   lokitrix mat1(input, 12, dims);
-  lokitrix mat2(input, 12, dims);
+  lokitrix mat2(input2, 12, dims);
   mat1.print();
   cout << mat1.absolute_index(1, 2) << endl;
   mat1.transpose();
