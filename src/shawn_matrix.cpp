@@ -21,7 +21,7 @@ public:
   typedef T datatype;
 
   lokitrix(T *a, int b, array<int, 2> c) {
-    create(a, b, c);
+    create_from_data(a, b, c);
   }
   lokitrix(size_type n, const T& value, array<int, 2> input_dimensions){
 	  create(n, value, input_dimensions);
@@ -121,6 +121,7 @@ private:
   allocator<T> alloc;
   void create();
   void create(size_type, const T&, array<int, 2>);
+  void create_from_data(data_pointer, size_type, array<int, 2>);
   void create(const_data_pointer, const_data_pointer);
   void delete_lokitrix();
   void add_rows(lokitrix);
@@ -149,11 +150,13 @@ void lokitrix<T>::create(size_type n, const T& value, array<int, 2> input_dimens
     throw invalid_argument("Given data size and dimensions don't match");
   }
 }
+template <class T>
 //initializes data from an input array with no shape
-void lokitrix<T>::create(data_pointer input, size_type n, array<int, 2> input_dimensions) {
+void lokitrix<T>::create_from_data(data_pointer input, size_type n, array<int, 2> input_dimensions) {
   data = alloc.allocate(n);
   data_end_pointer = data + n;
-  copy_n(input.begin(), n, data);
+  //this seems dangerous, could easily dereference a null ptr
+  copy_n(*input.begin(), n, data);
   dimensions = input_dimensions;
   stride[0] = (data_size / input_dimensions[0]);
   stride[1] = 1;
@@ -242,6 +245,9 @@ void lokitrix<T>::add_rows(lokitrix<T> new_rows) {
 
 template <class T>
 lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
+    // You gotta avoid copying this much, you will be slower than
+    // a garbage collected language like python unless you avoid
+    // as many copying steps as possible
   const array<int, 2> dimensions_1 = mat1.get_dimensions();
   const array<int, 2> dimensions_2 = mat2.get_dimensions();
   array<int, 2> output_dimensions;
