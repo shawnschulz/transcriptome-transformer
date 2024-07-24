@@ -119,10 +119,40 @@ private:
   data_pointer data;
   data_pointer data_end_pointer;
   allocator<T> alloc;
-  void create();
-  void create(size_type, const T&, array<int, 2>);
-  void create_from_data(data_pointer, size_type, array<int, 2>);
-  void create(const_data_pointer, const_data_pointer);
+  //eehhh we have strayed from god, no more dynamic mem allocation 
+  //lets make 6 create functions that make a static array of size
+  //1mb, 100 mb, 1gb, 8gb, 32gb and 64gb
+  //ideally we use make_unique or something somehow to add some
+  //attempt at memory safety
+  //
+  //create will default to an 8gb lokitrix, since that seems like
+  //a reasonable amount for a neural network sized dataset
+  //
+  //data will be a smart pointer to an appropriately sized std::array
+  void create(data_pointer, size_type, array<int, 2>);
+  void create_1mb(data_pointer, size_type, array<int, 2>);
+  void create_100mb(data_pointer, size_type, array<int, 2>);
+  void create_1gb(data_pointer, size_type, array<int, 2>);
+  void create_8gb(data_pointer, size_type, array<int, 2>);
+  void create_32gb(data_pointer, size_type, array<int, 2>);
+  void create_64gb(data_pointer, size_type, array<int, 2>);
+
+  //data will be a smart pointer to std::vec
+  void create_dyn(data_pointer, size_type, array<int, 2>);
+  //all of these can be overloaded to make empty versions with repititous input
+  //data
+  //are we repeating ourselves? yes. should we really have a shared interface?
+  //also yes. but i think this is the only way to do this without dynamic
+  //mem allocation, and while it was a fun side thing to reimpliment std::vec
+  //the point of this library is HPC and this will make that a lot easier
+  //i think we don't need to store what type we made? can check it based on
+  //the size of array since these are now gonna be std::arrays
+  //
+  //old dynamic mem allocation functions
+  //void create();
+  //void create(size_type, const T&, array<int, 2>);
+  //void create_from_data(data_pointer, size_type, array<int, 2>);
+  //void create(const_data_pointer, const_data_pointer);
   void delete_lokitrix();
   void add_rows(lokitrix);
 
@@ -156,7 +186,7 @@ void lokitrix<T>::create_from_data(data_pointer input, size_type n, array<int, 2
   data = alloc.allocate(n);
   data_end_pointer = data + n;
   //this seems dangerous, could easily dereference a null ptr
-  copy_n(*input.begin(), n, data);
+  copy_n(input.begin(), n, data);
   dimensions = input_dimensions;
   stride[0] = (data_size / input_dimensions[0]);
   stride[1] = 1;
