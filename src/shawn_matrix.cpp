@@ -111,14 +111,11 @@ public:
   }
   data_pointer data_start() { return data; };
   const_data_pointer data_start() const { return data; };
-  data_pointer data_end() { return data_end_pointer; };
-  const_data_pointer data_end() const { return data_end_pointer; };
 
 private:
   size_type data_size;
+  //the data_pointer should be a smart pointer
   data_pointer data;
-  data_pointer data_end_pointer;
-  allocator<T> alloc;
   //eehhh we have strayed from god, no more dynamic mem allocation 
   //lets make 6 create functions that make a static array of size
   //1mb, 100 mb, 1gb, 8gb, 32gb and 64gb
@@ -130,7 +127,7 @@ private:
   //
   //data will be a smart pointer to an appropriately sized std::array
   void create(data_pointer, size_type, array<int, 2>);
-  void create_1mb(data_pointer, size_type, array<int, 2>);
+  void create_4mb(data_pointer, size_type, array<int, 2>);
   void create_100mb(data_pointer, size_type, array<int, 2>);
   void create_1gb(data_pointer, size_type, array<int, 2>);
   void create_8gb(data_pointer, size_type, array<int, 2>);
@@ -162,31 +159,32 @@ private:
   array<int, 2> stride;
 };
 
-template <class T> 
-void lokitrix<T>::create() {
-  data = data_end_pointer = 0;
-}
-template <class T>
+//template <class T>
 //initializes data of all same value
-void lokitrix<T>::create(size_type n, const T& value, array<int, 2> input_dimensions) {
-  data = alloc.allocate(n);
-  data_end_pointer = data + n;
-  uninitialized_fill(data, data_end_pointer, value);
-  dimensions = input_dimensions;
-  stride[0] = (data_size / input_dimensions[0]);
-  stride[1] = 1;
-  if (data_size % dimensions[1] != 0 ||
-      dimensions[0] != data_size / dimensions[1]) {
-    throw invalid_argument("Given data size and dimensions don't match");
-  }
-}
+//void lokitrix<T>::create_same_data(size_type n, const T& value, array<int, 2> input_dimensions) {
+//  data = alloc.allocate(n);
+//  data_end_pointer = data + n;
+//  uninitialized_fill(data, data_end_pointer, value);
+//  dimensions = input_dimensions;
+//  stride[0] = (data_size / input_dimensions[0]);
+//  stride[1] = 1;
+//  if (data_size % dimensions[1] != 0 ||
+//      dimensions[0] != data_size / dimensions[1]) {
+//    throw invalid_argument("Given data size and dimensions don't match");
+//  }
+//}
 template <class T>
-//initializes data from an input array with no shape
-void lokitrix<T>::create_from_data(data_pointer input, size_type n, array<int, 2> input_dimensions) {
-  data = alloc.allocate(n);
-  data_end_pointer = data + n;
+//initializes data from an input array with no shape, default allocates 
+//roughly 1 gb worth of f32 array (e.g. if you choose to use double instead
+//you'll actually use 2 gb of memory, if u use a f16 you use 500 mb of memory
+//etc.
+void lokitrix<T>::create(data_pointer input, size_type n, array<int, 2> input_dimensions) {
+  auto data = make_unique(array<T, 250000000> data);
   //this seems dangerous, could easily dereference a null ptr
-  copy_n(input.begin(), n, data);
+  if (!(data.size() > n)) {
+          throw invalid_argument("Given data exceeds size of allocated array");
+          }
+  copy(input, n, data);
   dimensions = input_dimensions;
   stride[0] = (data_size / input_dimensions[0]);
   stride[1] = 1;
@@ -195,41 +193,15 @@ void lokitrix<T>::create_from_data(data_pointer input, size_type n, array<int, 2
     throw invalid_argument("Given data size and dimensions don't match");
   }
 }
+
 template <class T>
-void lokitrix<T>::create(const_data_pointer i, const_data_pointer j)
-{
-  data = alloc.allocate(j - i);
-  data_end_pointer = uninitialized_copy(i, j, data);
-}
-template <class T>
-void lokitrix<T>::delete_lokitrix()
+void lokitrix<T>::delete()
 {
   if (data) {
-      data_pointer it = data_end_pointer;
-      while (it != data)
-          alloc.destroy(--it);
-      alloc.deallocate(data, data_end_pointer - data);
+    delete(data);
+    delete(dimensions);
+    delete(stride);
   }
-  data = data_end_pointer = 0;
-}
-template <class T>
-void lokitrix<T>::add_rows(lokitrix<T> new_rows) {
-  //because we don't have a limit and used pointer, this method incurs a 
-  //memory overhead, since we allocate an entirely new matrix every time.
-  //thus it should be used sparingly (as I would expect)
-  //
-  //if this memory overhead is a lot, create a second matrix representation
-  //that uses std::vector and incurs the performance hit to syncing across
-  //threads in favor of making this process faster
-  if (new_rows.get_stride[0] != dimensions[1]) {
-    throw invalid_argument("New row sizes do not match matrix dimensions");
-  }
-  size_type new_size = data_end_pointer + new_rows.data_end();
-  data_pointer new_data = alloc.allocate(new_size);
-  data_pointer new_end_pointer = uninitialized_copy(data, data_end_pointer, new_data);
-  delete_lokitrix();
-  data = new_data;
-  data_end_pointer = new_end_pointer;
 }
 // template <typename T>
 // T CPUDotProduct(T mat1, T mat2)
@@ -315,6 +287,7 @@ lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
 int main() {
   float input[12] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
   float input2[12] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  unique_ptr<float> input = 
   array<int, 2> dims = {4, 3};
   lokitrix mat1(input, 12, dims);
   lokitrix mat2(input2, 12, dims);
