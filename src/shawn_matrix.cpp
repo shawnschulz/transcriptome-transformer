@@ -8,7 +8,6 @@ using namespace std;
 
 template <typename T> class lokitrix {
 public:
-  //PUBLIC FUNCTIONS MUST NOT CHANGE data or data_end_pointer!!!!
   //new idea: use this matrix for multi thread intensive operations
   //where eeking out more performance matters alot more, and use
   //a diff, simpler version with a vec<> as the underlying
@@ -21,13 +20,11 @@ public:
   typedef T datatype;
 
   lokitrix(T *a, int b, array<int, 2> c) {
-    create_from_data(a, b, c);
+    create(a, b, c);
   }
   lokitrix(size_type n, const T& value, array<int, 2> input_dimensions){
 	  create(n, value, input_dimensions);
   }
-  lokitrix() { create(); } //the empty constructor
-  lokitrix(const lokitrix& l) { create(l.data_start(), l.data_end()); } //this is the copy constructor
   ~lokitrix() { delete_lokitrix(); } //this is the destructor for the class
   //not using const T& here for operator overload violates the assumption of class invariance and may not 
   //be worth it for convenience in writing the matmul function
@@ -150,8 +147,8 @@ private:
   //void create(size_type, const T&, array<int, 2>);
   //void create_from_data(data_pointer, size_type, array<int, 2>);
   //void create(const_data_pointer, const_data_pointer);
-  void delete_lokitrix();
   void add_rows(lokitrix);
+  void delete_lokitrix();
 
   array<int, 2> dimensions;
   // stride is the amount to move to format columns and rows, can simply
@@ -179,12 +176,12 @@ template <class T>
 //you'll actually use 2 gb of memory, if u use a f16 you use 500 mb of memory
 //etc.
 void lokitrix<T>::create(data_pointer input, size_type n, array<int, 2> input_dimensions) {
-  auto data = make_unique(array<T, 250000000> data);
+  array<T, 250000000> data;
   //this seems dangerous, could easily dereference a null ptr
   if (!(data.size() > n)) {
           throw invalid_argument("Given data exceeds size of allocated array");
           }
-  copy(input, n, data);
+  std::copy(*input, data);
   dimensions = input_dimensions;
   stride[0] = (data_size / input_dimensions[0]);
   stride[1] = 1;
@@ -195,12 +192,12 @@ void lokitrix<T>::create(data_pointer input, size_type n, array<int, 2> input_di
 }
 
 template <class T>
-void lokitrix<T>::delete()
+void lokitrix<T>::delete_lokitrix()
 {
   if (data) {
-    delete(data);
-    delete(dimensions);
-    delete(stride);
+    delete_lokitrix(data);
+    delete_lokitrix(dimensions);
+    delete_lokitrix(stride);
   }
 }
 // template <typename T>
@@ -285,12 +282,11 @@ lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
 }
 
 int main() {
-  float input[12] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-  float input2[12] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-  unique_ptr<float> input = 
+  array<float, 12> data1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  array<float, 12> data2 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
   array<int, 2> dims = {4, 3};
-  lokitrix mat1(input, 12, dims);
-  lokitrix mat2(input2, 12, dims);
+  lokitrix mat1(&input, 12, dims);
+  lokitrix mat2(&input2, 12, dims);
   mat1.print();
   cout << mat1.absolute_index(1, 2) << endl;
   mat1.transpose();
