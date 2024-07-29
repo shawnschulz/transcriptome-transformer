@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-using namespace std;
+using namespace std::vector, std::array;
 
 template <typename T> class lokitrix {
 public:
