@@ -123,15 +123,16 @@ public:
     int absolute_index = i * get_const_stride()[0] + j;
     return absolute_index;
   }
+
   //this transpose function returns a copy, and so should not be unsafe
   lokitrix<T> transpose() {
-	  array<int, 2> new_dimensions;
-	  array<int, 2> old_dimensions = this.get_const_dimensions();
-	  new_dimensions[0] = old_dimensions[1];
-	  new_dimensions[1] = old_dimensions[0];
-	  //this should deep copy the data
-	  vector<T> new_data = this.get_const_data();
-	  return lokitrix(new_data, new_dimensions);
+    array<int, 2> new_dimensions;
+    array<int, 2> old_dimensions = this.get_const_dimensions();
+    new_dimensions[0] = old_dimensions[1];
+    new_dimensions[1] = old_dimensions[0];
+    //this should deep copy the data
+    vector<T> new_data = this.get_const_data();
+    return lokitrix(new_data, new_dimensions);
   }
   
   //UNSAFE METHODS
@@ -153,40 +154,17 @@ private:
   size_type data_size;
   data_vector data;
   void create(data_vector, array<int, 2>);
-  //old dynamic mem allocation functions
-  //void create();
-  //void create(size_type, const T&, array<int, 2>);
-  //void create_from_data(data_pointer, size_type, array<int, 2>);
-  //void create(const_data_pointer, const_data_pointer);
   void add_rows(lokitrix);
   void delete_lokitrix();
-
   array<int, 2> dimensions;
   // stride is the amount to move to format columns and rows, can simply
   // swap stride around to go from row major to column major
   array<int, 2> stride;
 };
 
-//template <class T>
-//initializes data of all same value
-//void lokitrix<T>::create_same_data(size_type n, const T& value, array<int, 2> input_dimensions) {
-//  data = alloc.allocate(n);
-//  data_end_pointer = data + n;
-//  uninitialized_fill(data, data_end_pointer, value);
-//  dimensions = input_dimensions;
-//  stride[0] = (data_size / input_dimensions[0]);
-//  stride[1] = 1;
-//  if (data_size % dimensions[1] != 0 ||
-//      dimensions[0] != data_size / dimensions[1]) {
-//    throw invalid_argument("Given data size and dimensions don't match");
-//  }
-//}
-//
 //CREATOR FUNCTIONS
 template <class T>
 void lokitrix<T>::create(data_vector input, array<int, 2> input_dimensions) {
-  //this seems dangerous, could easily dereference a null ptr
-  
   //This should deep copy the data, just a note
   data = input;
   //This should shallow copy which doesn't matter if type is int
@@ -199,11 +177,56 @@ void lokitrix<T>::create(data_vector input, array<int, 2> input_dimensions) {
     throw invalid_argument("Given data size and dimensions don't match");
   }
 }
-//TODO make a create function that initializes with all 0 (or a repeated number specified,
-//this should call std::vector reserve
-//TODO make a create function that specifies the memory to reserve for the data vector,
-//such that I can create lokitrixes that prereserve memory that will be used.
-//this can have uninitialized (null) values
+
+//literally the same just you can preallocate a really large matrix if you know the size in advance
+template <class T>
+void lokitrix<T>::create(data_vector input, array<int, 2> input_dimensions, size_type size) {
+  //This should deep copy the data, just a note
+  data = input;
+  data.reserve(size);
+  //This should shallow copy which doesn't matter if type is int
+  dimensions = input_dimensions;
+
+  stride[0] = (data_size / input_dimensions[0]);
+  stride[1] = 1;
+  if (input.size() % dimensions[1] != 0 ||
+      dimensions[0] != data_size / dimensions[1]) {
+    throw invalid_argument("Given data size and dimensions don't match");
+  }
+}
+
+template <class T>
+void lokitrix<T>::create(size_type size, T value, array<int, 2> input_dimensions) {
+  //This should deep copy the data, just a note
+  vector data;
+  data.reserve(size);
+  data.fill(value);
+  //This should shallow copy which doesn't matter if type is int
+  dimensions = input_dimensions;
+
+  stride[0] = (data_size / input_dimensions[0]);
+  stride[1] = 1;
+  if (input.size() % dimensions[1] != 0 ||
+      dimensions[0] != data_size / dimensions[1]) {
+    throw invalid_argument("Given data size and dimensions don't match");
+  }
+}
+
+template <class T>
+void lokitrix<T>::create(size_type size, array<int, 2> input_dimensions) {
+  //This should deep copy the data, just a note
+  vector data;
+  data.reserve(size);
+  //This should shallow copy which doesn't matter if type is int
+  dimensions = input_dimensions;
+
+  stride[0] = (data_size / input_dimensions[0]);
+  stride[1] = 1;
+  if (input.size() % dimensions[1] != 0 ||
+      dimensions[0] != data_size / dimensions[1]) {
+    throw invalid_argument("Given data size and dimensions don't match");
+  }
+}
 
 template <class T>
 void lokitrix<T>::delete_lokitrix()
@@ -290,6 +313,21 @@ lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
     }
   }
   return output_data;
+}
+
+//CONVENIENCE FUNCTIONS
+//Functions to create matrices. Right now just get 0s and identity
+lokitrix<T> identity(typename T, array<int, 2> dimensions) {
+	if (dimensions[0] != dimensions[1]) {
+		throw invalid_argument("Can only make identity matrix for square matrix");
+	}
+	vector<T> data;
+	int size = dimensions[0] * dimensions[1];
+	data.reserve(size);
+	data.fill(0);
+	for (i = 0; i < diemnsions[0]; i++) {
+		data[i]
+	}
 }
 
 int main() {
