@@ -18,7 +18,10 @@ public:
   typedef const vector<T> const_data_vector;
   typedef size_t size_type;
   typedef T datatype;
-
+  
+  //CONSTRUCTORS AND DESTRUCTORS
+  //These should just call other functions that outline creation, rather than
+  //being complex creation functions themselves 
   lokitrix(data_vector a, array<int, 2> b) {
     create(a, b);
   }
@@ -26,10 +29,10 @@ public:
 	  create(n, value, input_dimensions);
   }
   ~lokitrix() { delete_lokitrix(); } //this is the destructor for the class
-  //not using const T& here for operator overload violates the assumption of class invariance and may not 
-  //be worth it for convenience in writing the matmul function
-  //Having a lot of trouble accessing data to use [] operator overload, lets come back to this
-  //after fixing other compiler errors
+  
+  //OPERATOR OVERLOADS
+  //These should not violate class invariance, instead create an UNSAFE funciton
+  //or method if you want to do a mutative behavior
   vector<T>& operator[](size_type i) { 
     if (dimensions[0] > 1) {
       size_t output_size = dimensions[1];
@@ -39,44 +42,61 @@ public:
       for (int i = 0; i < dimensions[1]; i++) {
           //how are you gonna use the index operator for this when you haven't
           //defined the index operator yet LMAO
-             slice[i] = this.data_start()[row_start_index + i];
+             slice[i] = this.get_const_data()[row_start_index + i];
       } 
       return lokitrix(slice, output_size, output_dimensions);
     } else {
-      return this.data_start()[i];
+      return this.get_const_data()[i];
     }
   }
   lokitrix<T>& operator=(const lokitrix& right_hand_side) {
     if (&right_hand_side != this) {
       delete_lokitrix();
-      create(right_hand_side.begin(), right_hand_side.end());
+      create(right_hand_side.get_const_data(), right_hand_side.get_const_dimensions());
     }
-    return *this;
+    return this;
   }
-  void shape() {
-    cout << "row x cols: " << dimensions[0] << " " << dimensions[1] << '\n';
-  }
-  array<int, 2> get_dimensions() { return dimensions; }
-  data_vector get_data() { return data; }
-  int get_size() { return data.size(); }
-  //const char *get_datatype() { return datatype; }
+
+  //SAFE GETTERS
+  //The SAFE getters should all be const and provide read only access to data, protecting
+  //class invariance
+  const_data_vector get_const_data() const { return data; };
+  array<int, 2> get_const_dimensions() const { return dimensions; }
+  int get_const_size() const { return get_const_data.size(); }
+  array<int, 2> get_const_stride() const { return stride; }
+
+  //UNSAFE GETTERS 
+  //The UNSAFE getter functions will violate guarantee of class invariance, which is necessary
+  //for functions that mutate lokitrix. You can look to these functions if you have
+  //unexpected changes to data (which hopeflly shouldn't happen)
+  //Not all data needs an unsafe getter, for example the size is tracked by the data vector
+  array<int, 2> UNSAFE_get_stride() {return stride; }
+  array<int, 2> UNSAFE_get_dimensions() { return dimensions; }
+  data_vector UNSAFE_get_data() { return data; }
+
+  //SAFE METHODS
+  //Safe methods should be able to be freely used without editing class attributes
+  //Some safe methods return copies instead of mutating underlying data
   void print(int precision = 2, int width = 5) {
     // idk we change defaults for the width that feel right
     int column_index;
+    array<int, 2> temp_stride = get_const_stride();
+    array<int, 2> temp_dimensions = get_const_dimensions();
+    int temp_data_size = get_const_size();
     cout << std::fixed << std::setprecision(precision);
     cout << "[";
-    for (int row_index = 0; row_index <= dimensions[0] - 1; row_index++) {
+    for (int row_index = 0; row_index <= temp_dimensions[0] - 1; row_index++) {
       if (row_index != 0) {
         cout << " ";
       }
       cout << "[";
       cout << std::setw(width);
-      for (int column_index = 0; column_index <= dimensions[1] - 1;
-           column_index += stride[1]) {
-        int abs_index = row_index * stride[0] + column_index;
-        auto output = data[abs_index];
+      for (int column_index = 0; column_index <= temp_dimensions[1] - 1;
+           column_index += temp_stride[1]) {
+        int abs_index = row_index * temp_stride[0] + column_index;
+        auto output = get_const_data()[abs_index];
         cout << output;
-        if (abs_index != data_size - 1 && column_index != dimensions[1] - 1) {
+        if (abs_index != temp_data_size - 1 && column_index != temp_dimensions[1] - 1) {
           cout << ", ";
         }
         if (row_index > 1000) {
@@ -87,7 +107,7 @@ public:
         }
       }
       cout << "]";
-      if (row_index * stride[0] < data_size - stride[0]) {
+      if (row_index * temp_stride[0] < temp_data_size - temp_stride[0]) {
         cout << ",";
         cout << "\n";
       }
@@ -96,17 +116,38 @@ public:
     cout << "\n";
     return void();
   }
-  void transpose() {
-    int temp2 = dimensions[0];
-    dimensions[0] = dimensions[1];
-    dimensions[1] = temp2;
-    stride[0] = data_size / dimensions[0];
+  void shape() {
+    cout << "row x cols: " << dimensions[0] << " " << dimensions[1] << '\n';
   }
   int absolute_index(int i, int j) {
-    int absolute_index = i * stride[0] + j;
+    int absolute_index = i * get_const_stride()[0] + j;
     return absolute_index;
   }
-  const_data_vector get_const_data() const { return data; };
+  //this transpose function returns a copy, and so should not be unsafe
+  lokitrix<T> transpose() {
+	  array<int, 2> new_dimensions;
+	  array<int, 2> old_dimensions = this.get_const_dimensions();
+	  new_dimensions[0] = old_dimensions[1];
+	  new_dimensions[1] = old_dimensions[0];
+	  //this should deep copy the data
+	  vector<T> new_data = this.get_const_data();
+	  return lokitrix(new_data, new_dimensions);
+  }
+  
+  //UNSAFE METHODS
+  //Unsafe methods mutate the underlying data, because the user is trying to do something
+  //that they know they want to mutate the underlying data.
+  //While unsafe methods violate class invariance by mutating underlying data, should still
+  //avoid mutating the data vector pointer unless there is reason to do so. Methods like
+  //transpose should be tested so they are safe for users
+  void UNSAFE_mut_transpose() {
+    array<int, 2> temp_dimensions = this.UNSAFE_get_dimensions();
+    array<int, 2> temp_stride = this.UNSAFE_get_stride();
+    int temp2 = temp_dimensions[0];
+    temp_dimensions[0] = temp_dimensions[1];
+    temp_dimensions[1] = temp2;
+    temp_stride[0] = data_size / temp_dimensions[0];
+  }
 
 private:
   size_type data_size;
@@ -140,11 +181,17 @@ private:
 //    throw invalid_argument("Given data size and dimensions don't match");
 //  }
 //}
+//
+//CREATOR FUNCTIONS
 template <class T>
 void lokitrix<T>::create(data_vector input, array<int, 2> input_dimensions) {
   //this seems dangerous, could easily dereference a null ptr
+  
+  //This should deep copy the data, just a note
   data = input;
+  //This should shallow copy which doesn't matter if type is int
   dimensions = input_dimensions;
+
   stride[0] = (data_size / input_dimensions[0]);
   stride[1] = 1;
   if (input.size() % dimensions[1] != 0 ||
@@ -152,6 +199,11 @@ void lokitrix<T>::create(data_vector input, array<int, 2> input_dimensions) {
     throw invalid_argument("Given data size and dimensions don't match");
   }
 }
+//TODO make a create function that initializes with all 0 (or a repeated number specified,
+//this should call std::vector reserve
+//TODO make a create function that specifies the memory to reserve for the data vector,
+//such that I can create lokitrixes that prereserve memory that will be used.
+//this can have uninitialized (null) values
 
 template <class T>
 void lokitrix<T>::delete_lokitrix()
@@ -233,7 +285,7 @@ lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
         int mat2_abs_index = mat2.absolute_index(i, shared_index);
 	int mat3_abs_index = output_data.absolute_index(mat1_abs_index, mat2_abs_index);
         new_cell_value = mat1.get_data()[mat1_abs_index] * mat2.get_data()[mat2_abs_index];
-        output_data.get_data()[mat3_abs_index] = new_cell_value;
+        output_data.get_data()[mat4_abs_index] = new_cell_value;
       }
     }
   }
