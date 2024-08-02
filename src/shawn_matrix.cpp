@@ -323,11 +323,21 @@ lokitrix<T> identity(typename T, array<int, 2> dimensions) {
 	}
 	vector<T> data;
 	int size = dimensions[0] * dimensions[1];
+    	int stride = size / input_dimensions[0]	
 	data.reserve(size);
 	data.fill(0);
 	for (i = 0; i < diemnsions[0]; i++) {
-		data[i]
+		int absolute_index = i * stride + i;
+		data[absolute_index] = 1;
 	}
+	return lokitrix(data, dimensions);
+}
+lokitrix<T> zeroes(typename T, array<int,2> dimensions) {
+	vector<T> data;
+	int size = dimensions[0] * dimensions[1];
+	data.reserve(size);
+	data.fill(0);
+	return(lokitrix(data,dimensions);
 }
 
 int main() {
