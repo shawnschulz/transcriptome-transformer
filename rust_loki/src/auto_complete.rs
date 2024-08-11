@@ -14,17 +14,17 @@ fn add_auto_complete_to_sh(input_string: &str, fp: &str){
     return
 }
 
-fn get_initial_commands() -> Vec<u8>{
-    ///Uses comgen -c in an abi call to get all installed commands to generate
-    ///recommendations. Only should be used at beginning, not for fine
-    ///tuning recommendations
-    let commands = Command::new("cmd")
-        .arg("compgen")
-        .arg("-c")
-        .output()
-        .expect("failed to execute compgen");
-    return commands.stdout
-}
+//fn get_initial_commands() -> Vec<u8>{
+//    ///Uses comgen -c in an abi call to get all installed commands to generate
+//    ///recommendations. Only should be used at beginning, not for fine
+//    ///tuning recommendations
+//    let commands = Command::new("cmd")
+//        .arg("compgen")
+//        .arg("-c")
+//        .output()
+//        .expect("failed to execute compgen");
+//    return commands.stdout
+//}
 
 pub fn get_user_gen_commands<'a>(commands_fp: &'a str, ret_type: &'a str) -> &'a str{
     ///Takes a one column string .txt or .tsv containing previously run commands
