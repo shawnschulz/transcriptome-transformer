@@ -9,12 +9,7 @@ using std::vector, std::setprecision, std::array, std::string, std::cout,
 
 template <typename T> class lokitrix {
 public:
-  // new idea: use this matrix for multi thread intensive operations
-  // where eeking out more performance matters alot more, and use
-  // a diff, simpler version with a vec<> as the underlying
-  // data storage for matrix operations that can be done quickly
-  // single threaded. make a shared interface that uses both appropriately
-  //(or just repeat yourself LOLOL)
+
   typedef vector<T> data_vector;
   typedef const vector<T> const_data_vector;
   typedef size_t size_type;
@@ -210,7 +205,7 @@ template <class T>
 void lokitrix<T>::create(size_type size, T value,
                          array<int, 2> input_dimensions) {
   // This should deep copy the data, just a note
-  vector data;
+  std::vector<T> data;
   data.reserve(size);
   data.fill(value);
   // This should shallow copy which doesn't matter if type is int
@@ -226,7 +221,7 @@ void lokitrix<T>::create(size_type size, T value,
 template <class T>
 void lokitrix<T>::create(size_type size, array<int, 2> input_dimensions) {
   // This should deep copy the data, just a note
-  vector data;
+  vector<T> data;
   data.reserve(size);
   // This should shallow copy which doesn't matter if type is int
   dimensions = input_dimensions;
@@ -326,7 +321,8 @@ template <class T> lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
 
 // CONVENIENCE FUNCTIONS
 // Functions to create matrices. Right now just get 0s and identity
-lokitrix<T> identity(typename T, array<int, 2> dimensions) {
+template <class T>
+lokitrix<T> identity(array<int, 2> dimensions) {
   if (dimensions[0] != dimensions[1]) {
     throw invalid_argument("Can only make identity matrix for square matrix");
   }
@@ -335,19 +331,21 @@ lokitrix<T> identity(typename T, array<int, 2> dimensions) {
   int stride = size / dimensions[0];
   data.reserve(size);
   data.fill(0);
-  for (i = 0; i < dimensions[0]; i++) {
+  for (int i = 0; i < dimensions[0]; i++) {
     int absolute_index = i * stride + i;
     data[absolute_index] = 1;
   }
   return lokitrix(data, dimensions);
 }
-lokitrix<T> zeroes(typename T, array<int, 2> dimensions) {
+ 
+template <class T>
+lokitrix<T> zeroes(array<int, 2> dimensions) {
   vector<T> data;
   int size = dimensions[0] * dimensions[1];
   data.reserve(size);
   data.fill(0);
   data.fill();
-        return(lokitrix(data,dimensions);
+        return(lokitrix(data, dimensions));
 }
 
 int main() {
