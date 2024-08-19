@@ -60,11 +60,11 @@ pub fn insert_command<'a>(&mut self, new_command: String) -> Result<&'static str
 fn write(&self, file_path: &str) -> Result<&'static str, &'static str>
  {
     let mut file = File::create(file_path).expect("Unable to write file");
-    for i in 0..commands.len()
+    for i in 0..self.data.len()
     {
-        for command in &commands[i]
+        for j in self.data[i].len()
         {
-            file.write_all(command).expect("Something went wrong writing the command to file")
+            file.write_all(&self.data[i][j].as_bytes()).expect("Something went wrong writing the command to file")
         }
     }
     Ok("File should have written succesfully")
@@ -79,22 +79,22 @@ mod tests {
 
     #[test]
     fn test_insert_new_command() {
-        let mut test_commands = {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]]};
-        assert!(data.insert_command("git add -a -m '".to_string()).is_ok());
+        let mut test_commands = Commands {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]]};
+        assert!(test_commands.insert_command("git add -a -m '".to_string()).is_ok());
         assert_eq!([vec![], vec!["git add -a -m '".to_string(), "git add -a -m 'Add README.md'".to_string()]], test_commands.data);
     }
     #[test]
     fn test_insert_old_command() {
-        let mut test_commands: [Vec<String>; 2]= [vec![], vec!["git add -a -m 'Add README.md'".to_string()]];
-        assert!(insert_command("git add -a -m 'Add README.md'".to_string(), &mut test_commands).is_ok());
-        assert_eq!([vec!["git add -a -m 'Add README.md'".to_string()], vec![]], test_commands);
+        let mut test_commands = Commands {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]]};
+        assert!(test_commands.insert_command("git add -a -m 'Add README.md'".to_string()).is_ok());
+        assert_eq!([vec!["git add -a -m 'Add README.md'".to_string()], vec![]], test_commands.data);
     }
     #[test]
     fn test_write()
     {
-        let test_commands: [Vec<String>; 2]= [vec![], vec!["git add -a -m 'Add README.md'".to_string()]];
+        let mut test_commands = Commands {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]]};
         let file_path: &str = "./test.txt";
-        write_to_file(file_path, &test_commands);
+        test_commands.write(file_path);
     }
 
 }
