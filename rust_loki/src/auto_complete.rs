@@ -1,6 +1,12 @@
 ///auto_complete contains the methods and structures for making completions and serializing.
+use std::fs::File;
 
+struct Commands 
+{
+    data: [Vec<String>; 2],
+}
 
+impl Commands{
 ///Checks where if a string representing a run command exists in the commands list, then inserts at the front if it does. If it doesn't it inserts it
 /// in the back category
 /// 
@@ -19,34 +25,50 @@
 /// ## Errors
 /// 
 /// insert_command will error if receives empty string, only white space or only new lines as a command
-pub fn insert_command<'a>(new_command: String, commands: &'a mut [Vec<String>; 2]) -> Result<&'static str, &'static str>
+pub fn insert_command<'a>(&mut self, new_command: String) -> Result<&'static str, &'static str>
 {
     //Check if the entered command is just whitespace or newlines
     if new_command.len() == 0 || new_command.chars().all(|x| x == ' ') || new_command.chars().all(|x: char| x == '\n') || new_command == ""
     { 
         return Err("Error: received either an empty string or only whitespace as a command")
     }
-    for category_i in 0..commands.len()
+    for category_i in 0..self.data.len()
     {
-        for i in 0..commands[category_i].len() 
+        for i in 0..self.data[category_i].len() 
         {
-            if new_command == commands[category_i][i]
+            if new_command == self.data[category_i][i]
             {
-                let repeat_command = commands[category_i].remove(i);
-                commands[0].insert(0, repeat_command.to_string());
-                return Ok("Command found in previous commands, placing at front of commands");
+                let repeat_command = self.data[category_i].remove(i);
+                self.data[0].insert(0, repeat_command.to_string());
+                return Ok("Command found in previous self.data, placing at front of self.data");
             }
         }
     }
-    //Actually have to reborrow our commands here
-    commands[1].insert(0, new_command);
-    return Ok("Command not run before, placing at front of commands used once before")
+    //Actually have to reborrow our self.data here
+    self.data[1].insert(0, new_command);
+    return Ok("Command not run before, placing at front of self.data used once before")
 }
 
-// pub fn write_to_file(commands:Vec<String>) -> Result<&'static str, &'static str>
-// {
-
-// }
+/// Write the commmands array to a string. This function overwrites data, may need to create a new one that
+/// edits if file size creates i/o performance problems  
+/// 
+/// ## Examples
+/// ```
+/// 
+/// ```
+ pub fn write_to_file<'a>(file_path: &str, commands: &'a [Vec<String>; 2]) -> Result<&'static str, &'static str>
+ {
+    let mut file = File::create(file_path).expect("Unable to write file");
+    for i in 0..commands.len()
+    {
+        for command in &commands[i]
+        {
+            file.write_all(command).expect("Something went wrong writing the command to file")
+        }
+    }
+    Ok("File should have written succesfully")
+ }
+}
 
 #[cfg(test)]
 mod tests {
@@ -55,15 +77,22 @@ mod tests {
 
     #[test]
     fn test_insert_new_command() {
-        let mut test_commands: [Vec<String>; 2]= [vec![], vec!["git add -a -m 'Add README.md'".to_string()]];
-        assert!(insert_command("git add -a -m '".to_string(), &mut test_commands).is_ok());
-        assert_eq!([vec![], vec!["git add -a -m '".to_string(), "git add -a -m 'Add README.md'".to_string()]], test_commands);
+        let mut test_commands = {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]]};
+        assert!(data.insert_command("git add -a -m '".to_string()).is_ok());
+        assert_eq!([vec![], vec!["git add -a -m '".to_string(), "git add -a -m 'Add README.md'".to_string()]], test_commands.data);
     }
     #[test]
     fn test_insert_old_command() {
         let mut test_commands: [Vec<String>; 2]= [vec![], vec!["git add -a -m 'Add README.md'".to_string()]];
         assert!(insert_command("git add -a -m 'Add README.md'".to_string(), &mut test_commands).is_ok());
         assert_eq!([vec!["git add -a -m 'Add README.md'".to_string()], vec![]], test_commands);
+    }
+    #[test]
+    fn test_write()
+    {
+        let test_commands: [Vec<String>; 2]= [vec![], vec!["git add -a -m 'Add README.md'".to_string()]];
+        let file_path: &str = "./test.txt";
+        write_to_file(file_path, &test_commands);
     }
 
 }
