@@ -1,5 +1,6 @@
 ///auto_complete contains the methods and structures for making completions and serializing.
 use std::fs::File;
+use std::io::prelude::*;
 
 struct Commands 
 {
@@ -71,6 +72,10 @@ fn write(&self, file_path: &str) -> Result<&'static str, &'static str>
         }
     }
     Ok("File should have written succesfully")
+ }
+ fn flush(&self) -> Result<()>
+ {
+    
  }
 }
 
