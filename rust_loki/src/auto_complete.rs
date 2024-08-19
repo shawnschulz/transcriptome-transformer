@@ -49,6 +49,10 @@ pub fn insert_command<'a>(&mut self, new_command: String) -> Result<&'static str
     return Ok("Command not run before, placing at front of self.data used once before")
 }
 
+}
+
+impl Write for Commands
+{
 /// Write the commmands array to a string. This function overwrites data, may need to create a new one that
 /// edits if file size creates i/o performance problems  
 /// 
@@ -56,7 +60,7 @@ pub fn insert_command<'a>(&mut self, new_command: String) -> Result<&'static str
 /// ```
 /// 
 /// ```
- pub fn write_to_file<'a>(file_path: &str, commands: &'a [Vec<String>; 2]) -> Result<&'static str, &'static str>
+fn write(&self, file_path: &str) -> Result<&'static str, &'static str>
  {
     let mut file = File::create(file_path).expect("Unable to write file");
     for i in 0..commands.len()
@@ -69,6 +73,7 @@ pub fn insert_command<'a>(&mut self, new_command: String) -> Result<&'static str
     Ok("File should have written succesfully")
  }
 }
+
 
 #[cfg(test)]
 mod tests {
