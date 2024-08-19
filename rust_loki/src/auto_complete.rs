@@ -50,10 +50,6 @@ pub fn insert_command<'a>(&mut self, new_command: String) -> Result<&'static str
     return Ok("Command not run before, placing at front of self.data used once before")
 }
 
-}
-
-impl Write for Commands
-{
 /// Write the commmands array to a string. This function overwrites data, may need to create a new one that
 /// edits if file size creates i/o performance problems  
 /// 
@@ -72,10 +68,6 @@ fn write(&self, file_path: &str) -> Result<&'static str, &'static str>
         }
     }
     Ok("File should have written succesfully")
- }
- fn flush(&self) -> Result<()>
- {
-    
  }
 }
 
