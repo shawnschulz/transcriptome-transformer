@@ -3,25 +3,34 @@ use std::fs::File;
 use std::io::prelude::*;
 
 /// The Commands struct should contain all the data and metadata necessary to generate completions
-pub struct Commands 
+pub struct Commands
 {
     data: [Vec<String>; 2],
+    cat_names: [String; 2],
 }
-
-impl Commands{
-///Checks where if a string representing a run command exists in the commands list, then inserts at the front if it does. If it doesn't it inserts it
+impl Default for Commands
+{
+    fn default() -> Commands {
+        Commands{
+            data: [vec![], vec![]],
+            cat_names: ["[Used Commands]".to_string(), "[Unused Commands]".to_string()],
+        }
+    }
+}
+impl Commands {
+/// Checks where if a string representing a run command exists in the commands list, then inserts at the front if it does. If it doesn't it inserts it
 /// in the back category
 /// 
 /// ## Examples 
 /// 
 /// ```
-///let mut test_commands: [Vec<String>; 2]= [vec![], vec!["git add -a -m 'Add README.md'".to_string()]];
-///assert!(insert_command("git add -a -m '".to_string(), &mut test_commands).is_ok());
-///assert_eq!([vec![], vec!["git add -a -m '".to_string(), "git add -a -m 'Add README.md'".to_string()]], test_commands);
+// let mut test_commands = Commands {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]]};
+// assert!(test_commands.insert_command("git add -a -m '".to_string()).is_ok());
+// assert_eq!([vec![], vec!["git add -a -m '".to_string(), "git add -a -m 'Add README.md'".to_string()]], test_commands.data);
 ///
-///let mut test_commands: [Vec<String>; 2]= [vec![], vec!["git add -a -m 'Add README.md'".to_string()]];
-///assert!(insert_command("git add -a -m 'Add README.md'".to_string(), &mut test_commands).is_ok());
-///assert_eq!([vec!["git add -a -m 'Add README.md'".to_string()], vec![]], test_commands);
+// let mut test_commands = Commands {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]]};
+// assert!(test_commands.insert_command("git add -a -m 'Add README.md'".to_string()).is_ok());
+// assert_eq!([vec!["git add -a -m 'Add README.md'".to_string()], vec![]], test_commands.data);
 /// ```
 /// 
 /// ## Errors
@@ -56,18 +65,25 @@ pub fn insert_command<'a>(&mut self, new_command: String) -> Result<&'static str
 /// 
 /// ## Examples
 /// ```
+// let mut test_commands = Commands {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]]};
+// let file_path: &str = "./test.txt";
+// test_commands.write(file_path);
 /// 
 /// ```
 pub fn write(&self, file_path: &str) -> Result<&'static str, &'static str>
  {
     let mut file = File::create(file_path).expect("Unable to write file");
-    for i in 0..self.data.len()
+    for category in self.cat_names 
     {
-        for j in self.data[i].len()
+        file.write_all(category.as_bytes());
+        file.write_all("\n".as_bytes());
+        for j in 0..self.data[i].len()
         {
-            file.write_all(&self.data[i][j].as_bytes()).expect("Something went wrong writing the command to file")
+            file.write_all(&self.data[i][j].as_bytes()).expect("Something went wrong writing the command to file");
+            file.write_all("\n".as_bytes()).expect("Something went wrong adding the newline");
         }
     }
+    
     Ok("File should have written succesfully")
  }
 }
@@ -80,20 +96,20 @@ mod tests {
 
     #[test]
     fn test_insert_new_command() {
-        let mut test_commands = Commands {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]]};
+        let mut test_commands = Commands {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]], ..Default::default()};
         assert!(test_commands.insert_command("git add -a -m '".to_string()).is_ok());
         assert_eq!([vec![], vec!["git add -a -m '".to_string(), "git add -a -m 'Add README.md'".to_string()]], test_commands.data);
     }
     #[test]
     fn test_insert_old_command() {
-        let mut test_commands = Commands {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]]};
+        let mut test_commands = Commands {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]], ..Default::default()};
         assert!(test_commands.insert_command("git add -a -m 'Add README.md'".to_string()).is_ok());
         assert_eq!([vec!["git add -a -m 'Add README.md'".to_string()], vec![]], test_commands.data);
     }
     #[test]
     fn test_write()
     {
-        let mut test_commands = Commands {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]]};
+        let mut test_commands = Commands {data: [vec![], vec!["git add -a -m 'Add README.md'".to_string()]], ..Default::default() };
         let file_path: &str = "./test.txt";
         test_commands.write(file_path);
     }

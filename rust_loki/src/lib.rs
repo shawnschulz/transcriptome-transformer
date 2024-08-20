@@ -1,1 +1,1 @@
-mod auto_complete;
+pub mod auto_complete;
