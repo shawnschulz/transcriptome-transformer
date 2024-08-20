@@ -1,8 +1,9 @@
-///auto_complete contains the methods and structures for making completions and serializing.
+/// auto_complete contains the methods and structures for making completions and serializing.
 use std::fs::File;
 use std::io::prelude::*;
 
-struct Commands 
+/// The Commands struct should contain all the data and metadata necessary to generate completions
+pub struct Commands 
 {
     data: [Vec<String>; 2],
 }
@@ -57,7 +58,7 @@ pub fn insert_command<'a>(&mut self, new_command: String) -> Result<&'static str
 /// ```
 /// 
 /// ```
-fn write(&self, file_path: &str) -> Result<&'static str, &'static str>
+pub fn write(&self, file_path: &str) -> Result<&'static str, &'static str>
  {
     let mut file = File::create(file_path).expect("Unable to write file");
     for i in 0..self.data.len()
