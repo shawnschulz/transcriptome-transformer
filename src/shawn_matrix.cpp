@@ -23,6 +23,13 @@ public:
   lokitrix(size_type n, const T &value, array<int, 2> input_dimensions) {
     create(n, value, input_dimensions);
   }
+  lokitrix(lokitrix& t)
+  {
+      data = t.data;
+      dimensions = t.dimensions;
+      stride = t.stride;
+      data_size = t.data_size;
+  }
   ~lokitrix() { delete_lokitrix(); } // this is the destructor for the class
 
   // OPERATOR OVERLOADS
