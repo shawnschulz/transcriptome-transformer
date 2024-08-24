@@ -40,15 +40,15 @@ public:
       size_t output_size = dimensions[1];
       array<int, 2> output_dimensions = {1, dimensions[1]};
       lokitrix slice(output_size, 0, output_dimensions);
-      int row_start_index = this.absolute_index(i, 0);
+      int row_start_index =  this->absolute_index(i, 0);
       for (int i = 0; i < dimensions[1]; i++) {
         // how are you gonna use the index operator for this when you haven't
         // defined the index operator yet LMAO
-        slice[i] = this.get_const_data()[row_start_index + i];
+        slice[i] = this->get_const_data()[row_start_index + i];
       }
       return lokitrix(slice, output_size, output_dimensions);
     } else {
-      return this.get_const_data()[i];
+      return this->get_const_data()[i];
     }
   }
   lokitrix<T> &operator=(const lokitrix &right_hand_side) {
@@ -133,11 +133,11 @@ public:
   // this transpose function returns a copy, and so should not be unsafe
   lokitrix<T> transpose() {
     array<int, 2> new_dimensions;
-    array<int, 2> old_dimensions = this.get_const_dimensions();
+    array<int, 2> old_dimensions = this->get_const_dimensions();
     new_dimensions[0] = old_dimensions[1];
     new_dimensions[1] = old_dimensions[0];
     // this should deep copy the data
-    vector<T> new_data = this.get_const_data();
+    vector<T> new_data = this->get_const_data();
     return lokitrix(new_data, new_dimensions);
   }
 
@@ -148,8 +148,8 @@ public:
   // still avoid mutating the data vector pointer unless there is reason to do
   // so. Methods like transpose should be tested so they are safe for users
   void UNSAFE_mut_transpose() {
-    array<int, 2> temp_dimensions = this.UNSAFE_get_dimensions();
-    array<int, 2> temp_stride = this.UNSAFE_get_stride();
+    array<int, 2> temp_dimensions = this->UNSAFE_get_dimensions();
+    array<int, 2> temp_stride = this->UNSAFE_get_stride();
     int temp2 = temp_dimensions[0];
     temp_dimensions[0] = temp_dimensions[1];
     temp_dimensions[1] = temp2;
@@ -212,9 +212,7 @@ template <class T>
 void lokitrix<T>::create(size_type size, T value,
                          array<int, 2> input_dimensions) {
   // This should deep copy the data, just a note
-  std::vector<T> data;
-  data.reserve(size);
-  data.fill(value);
+  std::vector<T> data(size, value);
   // This should shallow copy which doesn't matter if type is int
   dimensions = input_dimensions;
 
@@ -241,11 +239,9 @@ void lokitrix<T>::create(size_type size, array<int, 2> input_dimensions) {
 }
 
 template <class T> void lokitrix<T>::delete_lokitrix() {
-  if (data) {
-    delete (data);
-    delete (dimensions);
-    delete (stride);
-  }
+    //Call the default constructor. We don't have to roll our own if we're 
+    //using std::vector
+    this->~lokitrix();
 }
 // template <typename T>
 // T CPUDotProduct(T mat1, T mat2)
@@ -293,8 +289,8 @@ template <class T> lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
   // You gotta avoid copying this much, you will be slower than
   // a garbage collected language like python unless you avoid
   // as many copying steps as possible
-  const array<int, 2> dimensions_1 = mat1.get_dimensions();
-  const array<int, 2> dimensions_2 = mat2.get_dimensions();
+  const array<int, 2> dimensions_1 = mat1.UNSAFE_get_dimensions();
+  const array<int, 2> dimensions_2 = mat2.UNSAFE_get_dimensions();
   array<int, 2> output_dimensions;
   output_dimensions[0] = dimensions_1[0];
   output_dimensions[1] = dimensions_2[1];
@@ -318,8 +314,8 @@ template <class T> lokitrix<T> CPUMatMul(lokitrix<T> mat1, lokitrix<T> mat2) {
         int mat3_abs_index =
             output_data.absolute_index(mat1_abs_index, mat2_abs_index);
         new_cell_value =
-            mat1.get_data()[mat1_abs_index] * mat2.get_data()[mat2_abs_index];
-        output_data.get_data()[mat3_abs_index] = new_cell_value;
+            mat1.UNSAFE_get_data()[mat1_abs_index] * mat2.UNSAFE_get_data()[mat2_abs_index];
+        output_data.UNSAFE_get_data()[mat3_abs_index] = new_cell_value;
       }
     }
   }
